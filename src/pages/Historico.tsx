@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, FileQuestion, RefreshCw } from "lucide-react";
+import { ArrowLeft, Trash2, FileQuestion, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { HistoricoItem, filtrarHistorico, deletarItem, limparHistorico } from "@/lib/storage";
+import { HistoricoItem, obterHistorico, deletarItem, limparHistorico } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
@@ -31,31 +32,51 @@ const Historico = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
+  const [busca, setBusca] = useState('');
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
 
-  const recarregarHistorico = () => {
-    setHistorico(filtrarHistorico(filtro));
+  const carregarHistorico = () => {
+    let resultado = obterHistorico();
+    
+    // Filtrar por dias
+    if (filtro !== 'todos') {
+      const dataLimite = new Date();
+      dataLimite.setDate(dataLimite.getDate() - filtro);
+      resultado = resultado.filter(item => 
+        new Date(item.timestamp) >= dataLimite
+      );
+    }
+    
+    // Filtrar por busca
+    if (busca.trim()) {
+      resultado = resultado.filter(item =>
+        item.identificacao?.toLowerCase().includes(busca.toLowerCase())
+      );
+    }
+    
+    setHistorico(resultado);
   };
 
+  // Carregar histórico ao montar e quando filtros mudam
   useEffect(() => {
-    recarregarHistorico();
-  }, [filtro]);
+    carregarHistorico();
+  }, [filtro, busca]);
 
   // Recarregar dados quando a página fica visível novamente
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        recarregarHistorico();
+        carregarHistorico();
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [filtro]);
+  }, [filtro, busca]);
 
   const handleDelete = (id: string) => {
     deletarItem(id);
-    setHistorico(filtrarHistorico(filtro));
+    carregarHistorico();
     toast({
       description: "Simulação removida do histórico",
     });
@@ -63,7 +84,7 @@ const Historico = () => {
 
   const handleLimparTudo = () => {
     limparHistorico();
-    setHistorico([]);
+    carregarHistorico();
     toast({
       description: "Histórico limpo com sucesso",
     });
@@ -77,6 +98,12 @@ const Historico = () => {
       minute: '2-digit'
     });
   };
+
+  // Calcular resumo
+  const lucroTotal = historico.reduce((acc, item) => {
+    return acc + (item.resultado.lucroAtual || 0);
+  }, 0);
+  const quantidadeSimulacoes = historico.length;
 
   return (
     <div className="page-container pb-24">
@@ -94,7 +121,7 @@ const Historico = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={recarregarHistorico}
+            onClick={carregarHistorico}
             className="p-2 hover:bg-secondary"
             title="Atualizar histórico"
           >
@@ -111,8 +138,20 @@ const Historico = () => {
         <h1 className="text-2xl font-bold text-foreground">Histórico de Simulações</h1>
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
+      {/* Campo de busca */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Buscar por nome do animal..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          className="h-12 pl-10"
+        />
+      </div>
+
+      {/* Filtros rápidos */}
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
         {filtros.map((f) => (
           <Button
             key={f.value}
@@ -121,7 +160,7 @@ const Historico = () => {
             onClick={() => setFiltro(f.value)}
             className={`whitespace-nowrap ${
               filtro === f.value 
-                ? "bg-amber-600 hover:bg-amber-700" 
+                ? "bg-blue-600 hover:bg-blue-700" 
                 : "hover:bg-secondary"
             }`}
           >
@@ -129,6 +168,24 @@ const Historico = () => {
           </Button>
         ))}
       </div>
+
+      {/* Card de Resumo */}
+      {historico.length > 0 && (
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-2 border-green-200 mb-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Total de simulações</p>
+              <p className="text-2xl font-bold text-foreground">{quantidadeSimulacoes}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Lucro acumulado</p>
+              <p className={`text-2xl font-bold ${lucroTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                R$ {lucroTotal.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lista de histórico */}
       {historico.length === 0 ? (

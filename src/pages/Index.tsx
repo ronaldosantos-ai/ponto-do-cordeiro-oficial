@@ -267,22 +267,29 @@ Gerado por Ponto do Cordeiro`;
             {/* Oferta Premium */}
             <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
               <div className="flex items-start gap-3">
-                <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-0.5" />
+                <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-1" />
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-foreground">
-                    Quer simular ganho de peso futuro?
+                    Recursos Premium
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Com o Premium você pode calcular se vale a pena segurar mais tempo considerando o ganho de peso esperado.
+                  <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                    <li>• Simular ganho de peso futuro</li>
+                    <li>• Comparar lucro hoje vs daqui X dias</li>
+                    <li>• Salvar simulações com identificação</li>
+                    <li>• Histórico completo com filtros</li>
+                    <li>• Alertas e lembretes</li>
+                  </ul>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    💡 Ajuda você a decidir o melhor momento de venda
                   </p>
-                  <Button
-                    className="mt-3 w-full h-10 bg-amber-600 hover:bg-amber-700 text-white"
-                    onClick={() => navigate('/premium')}
-                  >
-                    Ver Premium
-                  </Button>
                 </div>
               </div>
+              <Button
+                onClick={() => navigate('/premium')}
+                className="w-full mt-4 h-10 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                Experimentar Premium
+              </Button>
             </div>
           </div>
         )}
