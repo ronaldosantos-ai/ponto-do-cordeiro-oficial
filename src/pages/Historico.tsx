@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, FileQuestion } from "lucide-react";
+import { ArrowLeft, Trash2, FileQuestion, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -33,8 +33,24 @@ const Historico = () => {
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
 
-  useEffect(() => {
+  const recarregarHistorico = () => {
     setHistorico(filtrarHistorico(filtro));
+  };
+
+  useEffect(() => {
+    recarregarHistorico();
+  }, [filtro]);
+
+  // Recarregar dados quando a página fica visível novamente
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        recarregarHistorico();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [filtro]);
 
   const handleDelete = (id: string) => {
@@ -74,9 +90,20 @@ const Historico = () => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
         </Button>
-        <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
-          ⭐ Premium
-        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={recarregarHistorico}
+            className="p-2 hover:bg-secondary"
+            title="Atualizar histórico"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
+            ⭐ Premium
+          </span>
+        </div>
       </header>
 
       {/* Título */}
