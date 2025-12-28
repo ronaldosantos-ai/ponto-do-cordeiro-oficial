@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn, Settings } from "lucide-react";
+import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
 import { calcularDecisao, ResultData, SimulationData } from "@/lib/calculations";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -95,16 +95,8 @@ Gerado por Ponto do Cordeiro`;
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-md mx-auto space-y-6">
-        {/* Header com Login e Settings */}
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/settings')}
-            className="h-9 w-9"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+        {/* Header com Login */}
+        <div className="flex justify-end">
           {!user && (
             <Button
               variant="outline"
