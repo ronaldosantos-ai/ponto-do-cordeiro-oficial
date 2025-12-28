@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, BellOff, Plus, Trash2, Calendar, Loader2, History } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Plus, Trash2, Calendar, Loader2, History, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -183,9 +183,19 @@ const Alertas = () => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
         </Button>
-        <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
-          ⭐ Premium
-        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/settings')}
+            className="h-9 w-9"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+          <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
+            ⭐ Premium
+          </span>
+        </div>
       </header>
 
       {/* Título */}
