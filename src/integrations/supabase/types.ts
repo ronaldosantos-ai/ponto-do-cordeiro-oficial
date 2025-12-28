@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      historico_simulacoes: {
+        Row: {
+          created_at: string
+          dados: Json
+          device_id: string
+          id: string
+          identificacao: string | null
+          resultado: Json
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          dados: Json
+          device_id: string
+          id?: string
+          identificacao?: string | null
+          resultado: Json
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          dados?: Json
+          device_id?: string
+          id?: string
+          identificacao?: string | null
+          resultado?: Json
+          tipo?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

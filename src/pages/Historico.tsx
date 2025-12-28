@@ -49,7 +49,7 @@ const Historico = () => {
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
 
-  const carregarHistorico = async () => {
+  const carregarHistorico = async (mostrarToast = false) => {
     try {
       setCarregando(true);
       const todos = await obterHistorico();
@@ -73,8 +73,19 @@ const Historico = () => {
       }
       
       setHistorico(filtrados);
+      
+      if (mostrarToast) {
+        toast({
+          title: "🔄 Sincronizado",
+          description: `${filtrados.length} simulação(ões) encontrada(s)`
+        });
+      }
     } catch (error) {
       console.error('Erro ao carregar:', error);
+      toast({
+        title: "❌ Erro ao sincronizar",
+        variant: "destructive"
+      });
     } finally {
       setCarregando(false);
     }
@@ -154,10 +165,10 @@ const Historico = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={carregarHistorico}
+            onClick={() => carregarHistorico(true)}
             disabled={carregando}
             className="p-2 hover:bg-secondary"
-            title="Atualizar histórico"
+            title="Sincronizar histórico"
           >
             {carregando ? (
               <Loader2 className="w-4 h-4 animate-spin" />
