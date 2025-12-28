@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, History, Bell, Settings, LogOut } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao, verificarPremium } from "@/lib/storage";
@@ -12,7 +12,7 @@ const Premium = () => {
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
 
-  // Estados básicos - DEVEM vir antes de qualquer return condicional
+  // Estados básicos
   const [peso, setPeso] = useState('');
   const [dias, setDias] = useState('');
   const [custo, setCusto] = useState('');
@@ -44,7 +44,7 @@ const Premium = () => {
   // Se não for premium ou não autenticado, não renderiza nada
   if (!verificarPremium() || authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -57,8 +57,39 @@ const Premium = () => {
     setResultado(null);
   };
 
+  // Validação de campos
+  const validarCampos = (): string | null => {
+    if (!peso || parseFloat(peso) <= 0) {
+      return "Peso deve ser maior que zero";
+    }
+    if (!dias || parseInt(dias) <= 0) {
+      return "Dias deve ser maior que zero";
+    }
+    if (!custo || parseFloat(custo) < 0) {
+      return "Custo não pode ser negativo";
+    }
+    if (!precoVenda || parseFloat(precoVenda) <= 0) {
+      return "Preço de venda deve ser maior que zero";
+    }
+    if (!ganhoPesoEsperado || parseFloat(ganhoPesoEsperado) <= 0) {
+      return "Ganho de peso deve ser maior que zero";
+    }
+    if (!diasAdicionais || parseInt(diasAdicionais) <= 0) {
+      return "Dias adicionais deve ser maior que zero";
+    }
+    return null;
+  };
+
   const handleCalcular = async () => {
-    if (!peso || !dias || !custo || !precoVenda || !ganhoPesoEsperado || !diasAdicionais) return;
+    const erro = validarCampos();
+    if (erro) {
+      toast({
+        title: "⚠️ Dados inválidos",
+        description: erro,
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsLoading(true);
     
@@ -95,11 +126,10 @@ const Premium = () => {
   };
 
   const handleSalvar = async () => {
-    console.log('🟢 Botão Salvar clicado');
-    
     if (!resultado || !dadosSimulacao) {
       toast({
-        title: "⚠️ Faça uma simulação primeiro",
+        title: "⚠️ Atenção",
+        description: "Faça uma simulação primeiro",
         variant: "destructive"
       });
       return;
@@ -109,7 +139,6 @@ const Premium = () => {
       setSalvando(true);
       setErroDetalhes('');
       
-      console.log('🟢 Preparando dados...');
       const itemParaSalvar = {
         tipo: 'premium' as const,
         dados: dadosSimulacao,
@@ -117,10 +146,7 @@ const Premium = () => {
         identificacao: identificacao || undefined
       };
       
-      console.log('🟢 Chamando salvarSimulacao...');
-      const itemSalvo = await salvarSimulacao(itemParaSalvar);
-      
-      console.log('🟢 Item salvo:', itemSalvo);
+      await salvarSimulacao(itemParaSalvar);
       
       setSalvo(true);
       toast({
@@ -129,7 +155,6 @@ const Premium = () => {
       });
       
     } catch (error) {
-      console.error('🔴 ERRO COMPLETO:', error);
       const mensagemErro = error instanceof Error ? error.message : 'Erro desconhecido';
       setErroDetalhes(mensagemErro);
       
@@ -206,36 +231,13 @@ Gerado por Ponto do Cordeiro Premium`;
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="p-2 hover:bg-secondary"
+          className="p-2 hover:bg-secondary h-12"
+          aria-label="Voltar para página inicial"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
         </Button>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/settings')}
-            className="h-9 w-9"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/alertas')}
-            className="p-2 hover:bg-secondary text-muted-foreground"
-          >
-            <Bell className="w-5 h-5 mr-1" />
-            <span className="text-sm">Alertas</span>
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/historico')}
-            className="p-2 hover:bg-secondary text-muted-foreground"
-          >
-            <History className="w-5 h-5 mr-1" />
-            <span className="text-sm">Histórico</span>
-          </Button>
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
             ⭐ Premium
           </span>
@@ -246,8 +248,8 @@ Gerado por Ponto do Cordeiro Premium`;
               await signOut();
               navigate('/');
             }}
-            className="h-9 w-9 text-muted-foreground hover:text-destructive"
-            title="Sair"
+            className="h-10 w-10 text-muted-foreground hover:text-destructive"
+            aria-label="Sair da conta"
           >
             <LogOut className="w-5 h-5" />
           </Button>
@@ -256,16 +258,17 @@ Gerado por Ponto do Cordeiro Premium`;
 
       {/* Título */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Ponto do Cordeiro</h1>
-        <p className="text-muted-foreground text-sm mt-1">Simulação avançada com projeção de ganho</p>
+        <h1 className="text-2xl font-bold text-foreground">Ponto do Cordeiro Premium</h1>
+        <p className="text-muted-foreground text-sm mt-1">Simule ganho futuro e tome a melhor decisão</p>
       </div>
 
       {/* Formulário */}
-      <div className="card-container space-y-5">
+      <div className="card-container space-y-4">
         {/* Campos básicos */}
         <div>
-          <label className="text-label">Peso atual (kg)</label>
+          <label htmlFor="peso" className="text-label">Peso atual (kg)</label>
           <input
+            id="peso"
             type="number"
             inputMode="decimal"
             step="0.1"
@@ -278,10 +281,11 @@ Gerado por Ponto do Cordeiro Premium`;
         </div>
 
         <div>
-          <label className="text-label">Dias em cativeiro</label>
+          <label htmlFor="dias" className="text-label">Dias em cativeiro</label>
           <input
+            id="dias"
             type="number"
-            inputMode="numeric"
+            inputMode="decimal"
             min="1"
             placeholder="Ex: 60"
             value={dias}
@@ -291,8 +295,9 @@ Gerado por Ponto do Cordeiro Premium`;
         </div>
 
         <div>
-          <label className="text-label">Custo diário (R$/dia)</label>
+          <label htmlFor="custo" className="text-label">Custo diário (R$/dia)</label>
           <input
+            id="custo"
             type="number"
             inputMode="decimal"
             step="0.01"
@@ -305,8 +310,9 @@ Gerado por Ponto do Cordeiro Premium`;
         </div>
 
         <div>
-          <label className="text-label">Preço de venda (R$/kg)</label>
+          <label htmlFor="precoVenda" className="text-label">Preço de venda (R$/kg)</label>
           <input
+            id="precoVenda"
             type="number"
             inputMode="decimal"
             step="0.01"
@@ -320,8 +326,9 @@ Gerado por Ponto do Cordeiro Premium`;
 
         {/* Campo identificação */}
         <div>
-          <label className="text-label">Identificação do animal (opcional)</label>
+          <label htmlFor="identificacao" className="text-label">Identificação do animal (opcional)</label>
           <input
+            id="identificacao"
             type="text"
             placeholder="Ex: Cordeiro 23, Lote A"
             value={identificacao}
@@ -342,8 +349,9 @@ Gerado por Ponto do Cordeiro Premium`;
 
         {/* Campos Premium */}
         <div>
-          <label className="text-label">Ganho de peso esperado (kg/mês)</label>
+          <label htmlFor="ganhoPeso" className="text-label">Ganho de peso esperado (kg/mês)</label>
           <input
+            id="ganhoPeso"
             type="number"
             inputMode="decimal"
             step="0.1"
@@ -357,10 +365,11 @@ Gerado por Ponto do Cordeiro Premium`;
         </div>
 
         <div>
-          <label className="text-label">Segurar quantos dias a mais?</label>
+          <label htmlFor="diasAdicionais" className="text-label">Segurar quantos dias a mais?</label>
           <input
+            id="diasAdicionais"
             type="number"
-            inputMode="numeric"
+            inputMode="decimal"
             min="1"
             max="120"
             placeholder="Ex: 30"
@@ -376,11 +385,12 @@ Gerado por Ponto do Cordeiro Premium`;
           onClick={handleCalcular}
           disabled={!isFormValid || isLoading}
           className="w-full h-14 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-lg mt-4"
+          aria-label="Calcular projeção de venda"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Calculando...
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
+              <span role="status">Calculando...</span>
             </>
           ) : (
             'Calcular projeção'
@@ -390,11 +400,11 @@ Gerado por Ponto do Cordeiro Premium`;
 
       {/* Resultado Premium */}
       {resultado && (
-        <div className="mt-8 space-y-4 animate-fade-in">
+        <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500" role="region" aria-label="Resultado da projeção">
           {/* Cards de comparação */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Vender Hoje */}
-            <div className="p-5 rounded-xl border-2 border-blue-200 bg-blue-50">
+            <div className="p-5 rounded-xl border-2 border-blue-200 bg-blue-50 shadow-lg">
               <h3 className="text-lg font-bold text-foreground mb-4">📊 Vender hoje</h3>
               <div className="space-y-2 text-foreground">
                 <p>Peso: <span className="font-medium">{peso} kg</span></p>
@@ -407,7 +417,7 @@ Gerado por Ponto do Cordeiro Premium`;
             </div>
 
             {/* Projeção Futura */}
-            <div className="p-5 rounded-xl border-2 border-purple-200 bg-purple-50">
+            <div className="p-5 rounded-xl border-2 border-purple-200 bg-purple-50 shadow-lg">
               <h3 className="text-lg font-bold text-foreground mb-4">🔮 Daqui a {resultado.diasAdicionais} dias</h3>
               <div className="space-y-2 text-foreground">
                 <p>
@@ -427,17 +437,17 @@ Gerado por Ponto do Cordeiro Premium`;
 
           {/* Decisão Final */}
           {resultado.lucroFuturo !== undefined && (
-            <div className={`p-5 rounded-xl text-white ${
+            <div className={`p-5 rounded-xl text-white shadow-lg ${
               resultado.lucroFuturo > resultado.lucroAtual 
                 ? 'bg-green-600' 
                 : 'bg-amber-600'
             }`}>
-              <p className="text-xl font-bold">
+              <p className="text-2xl font-bold">
                 {resultado.lucroFuturo > resultado.lucroAtual 
                   ? '✅ Vale a pena segurar!' 
                   : '💰 Melhor vender hoje!'}
               </p>
-              <p className="mt-2 opacity-90">
+              <p className="mt-2 opacity-90 text-base">
                 {resultado.lucroFuturo > resultado.lucroAtual 
                   ? `Ganho adicional de R$ ${(resultado.lucroFuturo - resultado.lucroAtual).toFixed(2)}`
                   : `Você economiza R$ ${Math.abs(resultado.lucroFuturo - resultado.lucroAtual).toFixed(2)} em custos`}
@@ -448,7 +458,7 @@ Gerado por Ponto do Cordeiro Premium`;
           {/* Card para criar alerta */}
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start gap-3">
-              <Bell className="text-blue-600 w-5 h-5 mt-1 flex-shrink-0" />
+              <Bell className="text-blue-600 w-5 h-5 mt-1 flex-shrink-0" aria-hidden="true" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-foreground">
                   Criar alerta para este animal?
@@ -460,8 +470,8 @@ Gerado por Ponto do Cordeiro Premium`;
             </div>
             <Button
               variant="outline"
-              size="sm"
-              className="w-full mt-3"
+              size="lg"
+              className="w-full mt-3 h-12"
               onClick={() => navigate('/alertas')}
             >
               Configurar alerta
@@ -472,23 +482,24 @@ Gerado por Ponto do Cordeiro Premium`;
           <Button
             onClick={handleSalvar}
             disabled={salvando || salvo}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white"
+            aria-label={salvo ? "Simulação salva" : "Salvar simulação"}
           >
             {salvando ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Salvando...
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
+                <span role="status">Salvando...</span>
               </>
             ) : (
               <>
-                <Save className="w-5 h-5 mr-2" />
+                <Save className="w-5 h-5 mr-2" aria-hidden="true" />
                 {salvo ? 'Salvo no histórico ✓' : 'Salvar no histórico'}
               </>
             )}
           </Button>
 
           {erroDetalhes && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600" role="alert">
               Erro: {erroDetalhes}
             </div>
           )}
@@ -496,9 +507,10 @@ Gerado por Ponto do Cordeiro Premium`;
           <Button
             variant="outline"
             onClick={compartilharWhatsApp}
-            className="w-full h-12 border-2 border-green-600 text-green-600 hover:bg-green-50"
+            className="w-full h-14 border-2 border-green-600 text-green-600 hover:bg-green-50"
+            aria-label="Enviar resultado para WhatsApp"
           >
-            <MessageCircle className="w-5 h-5 mr-2" />
+            <MessageCircle className="w-5 h-5 mr-2" aria-hidden="true" />
             Enviar resultado para WhatsApp
           </Button>
 

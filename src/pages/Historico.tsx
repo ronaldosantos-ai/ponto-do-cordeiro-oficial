@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, FileQuestion, RefreshCw, Search, Loader2, CalendarIcon, Settings } from "lucide-react";
+import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,8 @@ import {
 import { HistoricoItem, obterHistorico, deletarItem, limparHistorico, verificarPremium } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { EmptyState } from "@/components/EmptyState";
+import { FileQuestion } from "lucide-react";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
 
@@ -39,18 +41,17 @@ const Historico = () => {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
 
-  // TODOS os useState devem vir ANTES de qualquer return
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [busca, setBusca] = useState('');
   const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>(undefined);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [atualizando, setAtualizando] = useState(false);
 
   const carregarHistorico = async (mostrarToast = false) => {
     if (!user) return;
     
     try {
-      setCarregando(true);
       const todos = await obterHistorico();
       
       let filtrados = todos;
@@ -86,7 +87,7 @@ const Historico = () => {
       
       if (mostrarToast) {
         toast({
-          title: "🔄 Sincronizado",
+          title: "✅ Sincronizado",
           description: `${filtrados.length} simulação(ões) encontrada(s)`
         });
       }
@@ -94,10 +95,9 @@ const Historico = () => {
       console.error('Erro ao carregar:', error);
       toast({
         title: "❌ Erro ao sincronizar",
+        description: "Tente novamente",
         variant: "destructive"
       });
-    } finally {
-      setCarregando(false);
     }
   };
 
@@ -114,8 +114,13 @@ const Historico = () => {
 
   // Carregar histórico ao montar e quando filtros mudam
   useEffect(() => {
+    const carregar = async () => {
+      setCarregando(true);
+      await carregarHistorico();
+      setCarregando(false);
+    };
     if (user) {
-      carregarHistorico();
+      carregar();
     }
   }, [filtro, busca, dataSelecionada, user]);
 
@@ -134,11 +139,17 @@ const Historico = () => {
   // Se não for premium ou não autenticado, mostrar loading
   if (!verificarPremium() || authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  const handleAtualizar = async () => {
+    setAtualizando(true);
+    await carregarHistorico(true);
+    setAtualizando(false);
+  };
 
   const handleDelete = async (id: string) => {
     try {
@@ -179,7 +190,7 @@ const Historico = () => {
   const handleSelectDate = (date: Date | undefined) => {
     setDataSelecionada(date);
     if (date) {
-      setFiltro('todos'); // Limpar filtro de dias quando seleciona data
+      setFiltro('todos');
     }
   };
   
@@ -194,13 +205,14 @@ const Historico = () => {
   const quantidadeSimulacoes = historico.length;
 
   return (
-    <div className="page-container pb-24">
+    <div className="page-container">
       {/* Header */}
       <header className="flex items-center justify-between mb-6 animate-fade-in">
         <Button
           variant="ghost"
           onClick={() => navigate('/premium')}
-          className="p-2 hover:bg-secondary"
+          className="p-2 hover:bg-secondary h-12"
+          aria-label="Voltar para Premium"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
@@ -209,23 +221,15 @@ const Historico = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/settings')}
-            className="h-9 w-9"
+            onClick={handleAtualizar}
+            disabled={atualizando || carregando}
+            className="h-10 w-10 hover:bg-secondary"
+            aria-label="Atualizar histórico"
           >
-            <Settings className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => carregarHistorico(true)}
-            disabled={carregando}
-            className="p-2 hover:bg-secondary"
-            title="Sincronizar histórico"
-          >
-            {carregando ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+            {atualizando ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-5 h-5" />
             )}
           </Button>
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
@@ -237,17 +241,19 @@ const Historico = () => {
       {/* Título */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-foreground">Histórico de Simulações</h1>
+        <p className="text-muted-foreground text-sm mt-1">Suas simulações salvas aparecerão aqui</p>
       </div>
 
       {/* Campo de busca */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
         <Input
           type="text"
           placeholder="Buscar por nome do animal..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="h-12 pl-10"
+          className="h-14 pl-12 text-lg"
+          aria-label="Buscar simulações"
         />
       </div>
 
@@ -260,11 +266,12 @@ const Historico = () => {
               <Button
                 variant="outline"
                 className={cn(
-                  "flex-1 justify-start text-left font-normal h-12",
-                  dataSelecionada && "border-blue-600 bg-blue-50"
+                  "flex-1 justify-start text-left font-normal h-14 text-base",
+                  dataSelecionada && "border-primary bg-primary/5"
                 )}
+                aria-label="Selecionar data específica"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-5 w-5" aria-hidden="true" />
                 {dataSelecionada 
                   ? format(dataSelecionada, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
                   : "Buscar por data específica"
@@ -284,9 +291,10 @@ const Historico = () => {
           {dataSelecionada && (
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={limparDataSelecionada}
-              className="h-12 px-3 text-muted-foreground hover:text-foreground"
+              className="h-14 w-14 text-muted-foreground hover:text-foreground"
+              aria-label="Limpar data selecionada"
             >
               ✕
             </Button>
@@ -299,15 +307,15 @@ const Historico = () => {
             <Button
               key={f.value}
               variant={filtro === f.value && !dataSelecionada ? "default" : "outline"}
-              size="sm"
+              size="lg"
               onClick={() => {
                 setFiltro(f.value);
                 setDataSelecionada(undefined);
               }}
               className={cn(
-                "whitespace-nowrap",
+                "whitespace-nowrap h-12",
                 filtro === f.value && !dataSelecionada
-                  ? "bg-blue-600 hover:bg-blue-700" 
+                  ? "bg-primary hover:bg-primary/90" 
                   : "hover:bg-secondary"
               )}
             >
@@ -319,7 +327,7 @@ const Historico = () => {
 
       {/* Card de Resumo */}
       {!carregando && historico.length > 0 && (
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-2 border-green-200 mb-4">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-2 border-green-200 mb-4 shadow-sm">
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm text-muted-foreground">Total de simulações</p>
@@ -337,22 +345,38 @@ const Historico = () => {
 
       {/* Lista de histórico */}
       {carregando ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+        <div className="flex flex-col items-center justify-center py-12" role="status" aria-label="Carregando simulações">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
           <p className="text-muted-foreground">Carregando simulações...</p>
         </div>
       ) : historico.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FileQuestion className="w-20 h-20 text-muted-foreground/30 mb-4" />
-          <p className="text-lg font-medium text-foreground">Nenhuma simulação salva ainda</p>
-          <p className="text-sm text-muted-foreground mt-1">Suas simulações salvas aparecerão aqui</p>
-        </div>
+        busca.trim() ? (
+          <EmptyState
+            icone={<Search className="w-20 h-20" />}
+            titulo="Nenhuma simulação encontrada"
+            descricao={`Nenhuma simulação encontrada para "${busca}"`}
+            acao={{
+              texto: "Limpar busca",
+              onClick: () => setBusca('')
+            }}
+          />
+        ) : (
+          <EmptyState
+            icone={<FileQuestion className="w-20 h-20" />}
+            titulo="Nenhuma simulação salva ainda"
+            descricao="Suas simulações salvas aparecerão aqui"
+            acao={{
+              texto: "Fazer simulação",
+              onClick: () => navigate('/premium')
+            }}
+          />
+        )
       ) : (
         <div className="space-y-3">
           {historico.map((item) => (
             <div
               key={item.id}
-              className={`card-container border-l-4 ${
+              className={`card-container border-l-4 shadow-sm ${
                 item.resultado.decisao === 'vender' 
                   ? 'border-l-green-600' 
                   : 'border-l-amber-600'
@@ -362,7 +386,7 @@ const Historico = () => {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   {item.identificacao && (
-                    <p className="font-semibold text-foreground">{item.identificacao}</p>
+                    <p className="font-semibold text-foreground text-base">{item.identificacao}</p>
                   )}
                   <p className="text-xs text-muted-foreground">{formatDate(item.timestamp)}</p>
                 </div>
@@ -372,17 +396,18 @@ const Historico = () => {
                   </Badge>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => handleDelete(item.id)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="h-10 w-10 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    aria-label={`Deletar simulação ${item.identificacao || ''}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
 
               {/* Corpo do card */}
-              <div className="grid grid-cols-2 gap-2 text-sm text-foreground">
+              <div className="grid grid-cols-2 gap-2 text-base text-foreground">
                 <p>Peso: <span className="font-medium">{item.dados.peso} kg</span></p>
                 <p>Dias: <span className="font-medium">{item.dados.dias}</span></p>
                 <p className={`font-semibold ${item.resultado.lucroAtual >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -397,7 +422,7 @@ const Historico = () => {
 
               {/* Footer do card */}
               <div className="mt-3 pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Decisão: {item.resultado.decisao === 'vender' ? '💰 Vender' : '⏳ Segurar'}
                 </p>
               </div>
@@ -408,12 +433,12 @@ const Historico = () => {
 
       {/* Botão flutuante */}
       {!carregando && historico.length > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 max-w-md mx-auto">
+        <div className="fixed bottom-20 left-4 right-4 max-w-md mx-auto">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full h-12 border-2 border-red-600 text-red-600 hover:bg-red-50 bg-background shadow-lg"
+                className="w-full h-14 border-2 border-red-600 text-red-600 hover:bg-red-50 bg-background shadow-lg text-base"
               >
                 Limpar histórico
               </Button>
@@ -426,10 +451,10 @@ const Historico = () => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleLimparTudo}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 h-12"
                 >
                   Limpar tudo
                 </AlertDialogAction>
