@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { HistoricoItem, obterHistorico, deletarItem, limparHistorico } from "@/lib/storage";
+import { HistoricoItem, obterHistorico, deletarItem, limparHistorico, verificarPremium } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
@@ -31,6 +31,19 @@ const filtros: { label: string; value: FiltroTipo }[] = [
 const Historico = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Verificar acesso Premium
+  useEffect(() => {
+    if (!verificarPremium()) {
+      navigate('/premium-info');
+    }
+  }, [navigate]);
+
+  // Se não for premium, não renderiza nada
+  if (!verificarPremium()) {
+    return null;
+  }
+
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [busca, setBusca] = useState('');
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);

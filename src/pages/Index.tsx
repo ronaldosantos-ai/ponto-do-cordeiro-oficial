@@ -285,7 +285,7 @@ Gerado por Ponto do Cordeiro`;
                 </div>
               </div>
               <Button
-                onClick={() => navigate('/premium')}
+                onClick={() => navigate('/premium-info')}
                 className="w-full mt-4 h-10 bg-amber-600 hover:bg-amber-700 text-white"
               >
                 Experimentar Premium
