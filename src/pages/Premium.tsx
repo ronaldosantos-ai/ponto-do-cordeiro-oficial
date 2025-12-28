@@ -41,7 +41,7 @@ const Premium = () => {
           </div>
 
           <div className="flex items-baseline gap-1 mb-6">
-            <span className="text-4xl font-bold text-foreground">R$ 9,90</span>
+            <span className="text-4xl font-bold text-foreground">R$ 19,90</span>
             <span className="text-muted-foreground">/mês</span>
           </div>
 
@@ -62,9 +62,7 @@ const Premium = () => {
           </button>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Cancele a qualquer momento. Sem compromisso.
-        </p>
+        <p className="text-center text-sm text-muted-foreground">Cancele a qualquer momento. Sem compromisso.</p>
       </main>
     </div>
   );
