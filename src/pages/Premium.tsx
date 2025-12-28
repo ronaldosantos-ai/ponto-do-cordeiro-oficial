@@ -36,6 +36,7 @@ const Premium = () => {
   const [resultado, setResultado] = useState<ResultData | null>(null);
   const [dadosSimulacao, setDadosSimulacao] = useState<SimulationData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (
@@ -82,20 +83,32 @@ const Premium = () => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     if (!resultado || !dadosSimulacao) return;
     
-    salvarSimulacao({
-      tipo: 'premium',
-      dados: dadosSimulacao,
-      resultado: resultado,
-      identificacao: identificacao || undefined
-    });
-    
-    setSalvo(true);
-    toast({
-      description: "✅ Simulação salva no histórico",
-    });
+    try {
+      setSalvando(true);
+      await salvarSimulacao({
+        tipo: 'premium',
+        dados: dadosSimulacao,
+        resultado: resultado,
+        identificacao: identificacao || undefined
+      });
+      
+      setSalvo(true);
+      toast({
+        title: "✅ Simulação salva",
+        description: "Acesse o histórico para ver todas as simulações"
+      });
+    } catch (error) {
+      toast({
+        title: "❌ Erro ao salvar",
+        description: "Tente novamente",
+        variant: "destructive"
+      });
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const compartilharWhatsApp = () => {
@@ -375,11 +388,20 @@ Gerado por Ponto do Cordeiro Premium`;
           {/* Botões finais */}
           <Button
             onClick={handleSalvar}
-            disabled={salvo}
+            disabled={salvando || salvo}
             className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Save className="w-5 h-5 mr-2" />
-            {salvo ? 'Salvo no histórico ✓' : 'Salvar no histórico'}
+            {salvando ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5 mr-2" />
+                {salvo ? 'Salvo no histórico ✓' : 'Salvar no histórico'}
+              </>
+            )}
           </Button>
 
           <Button

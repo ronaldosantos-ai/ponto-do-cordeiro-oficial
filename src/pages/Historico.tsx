@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, FileQuestion, RefreshCw, Search } from "lucide-react";
+import { ArrowLeft, Trash2, FileQuestion, RefreshCw, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -47,27 +47,37 @@ const Historico = () => {
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [busca, setBusca] = useState('');
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
-  const carregarHistorico = () => {
-    let resultado = obterHistorico();
-    
-    // Filtrar por dias
-    if (filtro !== 'todos') {
-      const dataLimite = new Date();
-      dataLimite.setDate(dataLimite.getDate() - filtro);
-      resultado = resultado.filter(item => 
-        new Date(item.timestamp) >= dataLimite
-      );
+  const carregarHistorico = async () => {
+    try {
+      setCarregando(true);
+      const todos = await obterHistorico();
+      
+      let filtrados = todos;
+      
+      // Filtrar por dias
+      if (filtro !== 'todos') {
+        const dataLimite = new Date();
+        dataLimite.setDate(dataLimite.getDate() - filtro);
+        filtrados = filtrados.filter(item => 
+          new Date(item.timestamp) >= dataLimite
+        );
+      }
+      
+      // Filtrar por busca
+      if (busca.trim()) {
+        filtrados = filtrados.filter(item =>
+          item.identificacao?.toLowerCase().includes(busca.toLowerCase())
+        );
+      }
+      
+      setHistorico(filtrados);
+    } catch (error) {
+      console.error('Erro ao carregar:', error);
+    } finally {
+      setCarregando(false);
     }
-    
-    // Filtrar por busca
-    if (busca.trim()) {
-      resultado = resultado.filter(item =>
-        item.identificacao?.toLowerCase().includes(busca.toLowerCase())
-      );
-    }
-    
-    setHistorico(resultado);
   };
 
   // Carregar histórico ao montar e quando filtros mudam
@@ -87,20 +97,30 @@ const Historico = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [filtro, busca]);
 
-  const handleDelete = (id: string) => {
-    deletarItem(id);
-    carregarHistorico();
-    toast({
-      description: "Simulação removida do histórico",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deletarItem(id);
+      await carregarHistorico();
+      toast({ title: "✅ Item deletado" });
+    } catch (error) {
+      toast({ 
+        title: "❌ Erro ao deletar",
+        variant: "destructive" 
+      });
+    }
   };
 
-  const handleLimparTudo = () => {
-    limparHistorico();
-    carregarHistorico();
-    toast({
-      description: "Histórico limpo com sucesso",
-    });
+  const handleLimparTudo = async () => {
+    try {
+      await limparHistorico();
+      await carregarHistorico();
+      toast({ title: "✅ Histórico limpo" });
+    } catch (error) {
+      toast({ 
+        title: "❌ Erro ao limpar",
+        variant: "destructive" 
+      });
+    }
   };
 
   const formatDate = (timestamp: string) => {
@@ -135,10 +155,15 @@ const Historico = () => {
             variant="ghost"
             size="sm"
             onClick={carregarHistorico}
+            disabled={carregando}
             className="p-2 hover:bg-secondary"
             title="Atualizar histórico"
           >
-            <RefreshCw className="w-4 h-4" />
+            {carregando ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
           </Button>
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
             ⭐ Premium
@@ -183,7 +208,7 @@ const Historico = () => {
       </div>
 
       {/* Card de Resumo */}
-      {historico.length > 0 && (
+      {!carregando && historico.length > 0 && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-2 border-green-200 mb-4">
           <div className="flex justify-between items-center">
             <div>
@@ -201,7 +226,12 @@ const Historico = () => {
       )}
 
       {/* Lista de histórico */}
-      {historico.length === 0 ? (
+      {carregando ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+          <p className="text-muted-foreground">Carregando simulações...</p>
+        </div>
+      ) : historico.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FileQuestion className="w-20 h-20 text-muted-foreground/30 mb-4" />
           <p className="text-lg font-medium text-foreground">Nenhuma simulação salva ainda</p>
@@ -267,7 +297,7 @@ const Historico = () => {
       )}
 
       {/* Botão flutuante */}
-      {historico.length > 0 && (
+      {!carregando && historico.length > 0 && (
         <div className="fixed bottom-6 left-4 right-4 max-w-md mx-auto">
           <AlertDialog>
             <AlertDialogTrigger asChild>
