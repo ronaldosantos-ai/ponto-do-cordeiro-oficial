@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, FileQuestion, RefreshCw, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, FileQuestion, RefreshCw, Search, Loader2, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +42,7 @@ const Historico = () => {
   // TODOS os useState devem vir ANTES de qualquer return
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [busca, setBusca] = useState('');
+  const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>(undefined);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -49,8 +55,19 @@ const Historico = () => {
       
       let filtrados = todos;
       
-      // Filtrar por dias
-      if (filtro !== 'todos') {
+      // Filtrar por data selecionada no calendário (prioridade)
+      if (dataSelecionada) {
+        const inicioDia = new Date(dataSelecionada);
+        inicioDia.setHours(0, 0, 0, 0);
+        const fimDia = new Date(dataSelecionada);
+        fimDia.setHours(23, 59, 59, 999);
+        
+        filtrados = filtrados.filter(item => {
+          const dataItem = new Date(item.timestamp);
+          return dataItem >= inicioDia && dataItem <= fimDia;
+        });
+      } else if (filtro !== 'todos') {
+        // Filtrar por dias (apenas se não tiver data selecionada)
         const dataLimite = new Date();
         dataLimite.setDate(dataLimite.getDate() - filtro);
         filtrados = filtrados.filter(item => 
@@ -100,7 +117,7 @@ const Historico = () => {
     if (user) {
       carregarHistorico();
     }
-  }, [filtro, busca, user]);
+  }, [filtro, busca, dataSelecionada, user]);
 
   // Recarregar dados quando a página fica visível novamente
   useEffect(() => {
@@ -154,8 +171,20 @@ const Historico = () => {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Sao_Paulo'
     });
+  };
+  
+  const handleSelectDate = (date: Date | undefined) => {
+    setDataSelecionada(date);
+    if (date) {
+      setFiltro('todos'); // Limpar filtro de dias quando seleciona data
+    }
+  };
+  
+  const limparDataSelecionada = () => {
+    setDataSelecionada(undefined);
   };
 
   // Calcular resumo
@@ -214,23 +243,70 @@ const Historico = () => {
         />
       </div>
 
-      {/* Filtros rápidos */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-        {filtros.map((f) => (
-          <Button
-            key={f.value}
-            variant={filtro === f.value ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFiltro(f.value)}
-            className={`whitespace-nowrap ${
-              filtro === f.value 
-                ? "bg-blue-600 hover:bg-blue-700" 
-                : "hover:bg-secondary"
-            }`}
-          >
-            {f.label}
-          </Button>
-        ))}
+      {/* Filtros: calendário e botões rápidos */}
+      <div className="space-y-3 mb-4">
+        {/* Seletor de data com calendário */}
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "flex-1 justify-start text-left font-normal h-12",
+                  dataSelecionada && "border-blue-600 bg-blue-50"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dataSelecionada 
+                  ? format(dataSelecionada, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                  : "Buscar por data específica"
+                }
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dataSelecionada}
+                onSelect={handleSelectDate}
+                locale={ptBR}
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+          {dataSelecionada && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={limparDataSelecionada}
+              className="h-12 px-3 text-muted-foreground hover:text-foreground"
+            >
+              ✕
+            </Button>
+          )}
+        </div>
+        
+        {/* Filtros rápidos por período */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {filtros.map((f) => (
+            <Button
+              key={f.value}
+              variant={filtro === f.value && !dataSelecionada ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setFiltro(f.value);
+                setDataSelecionada(undefined);
+              }}
+              className={cn(
+                "whitespace-nowrap",
+                filtro === f.value && !dataSelecionada
+                  ? "bg-blue-600 hover:bg-blue-700" 
+                  : "hover:bg-secondary"
+              )}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Card de Resumo */}
