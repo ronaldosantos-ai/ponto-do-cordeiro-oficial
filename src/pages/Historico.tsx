@@ -34,32 +34,15 @@ const Historico = () => {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
 
-  // Verificar acesso Premium e autenticação
-  useEffect(() => {
-    if (!verificarPremium()) {
-      navigate('/premium-info');
-      return;
-    }
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [navigate, user, authLoading]);
-
-  // Se não for premium ou não autenticado, mostrar loading
-  if (!verificarPremium() || authLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+  // TODOS os useState devem vir ANTES de qualquer return
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [busca, setBusca] = useState('');
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const carregarHistorico = async (mostrarToast = false) => {
+    if (!user) return;
+    
     try {
       setCarregando(true);
       const todos = await obterHistorico();
@@ -101,22 +84,44 @@ const Historico = () => {
     }
   };
 
+  // Verificar acesso Premium e autenticação
+  useEffect(() => {
+    if (!verificarPremium()) {
+      navigate('/premium-info');
+      return;
+    }
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [navigate, user, authLoading]);
+
   // Carregar histórico ao montar e quando filtros mudam
   useEffect(() => {
-    carregarHistorico();
-  }, [filtro, busca]);
+    if (user) {
+      carregarHistorico();
+    }
+  }, [filtro, busca, user]);
 
   // Recarregar dados quando a página fica visível novamente
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && user) {
         carregarHistorico();
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [filtro, busca]);
+  }, [filtro, busca, user]);
+
+  // Se não for premium ou não autenticado, mostrar loading
+  if (!verificarPremium() || authLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const handleDelete = async (id: string) => {
     try {
