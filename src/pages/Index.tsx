@@ -11,6 +11,8 @@ const Index = () => {
   const isFormValid = peso !== "" && dias !== "" && custo !== "";
 
   const handleCalcular = () => {
+    if (!isFormValid) return;
+
     console.log({
       peso: parseFloat(peso),
       dias: parseInt(dias),
