@@ -12,6 +12,24 @@ const Premium = () => {
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
 
+  // Estados básicos - DEVEM vir antes de qualquer return condicional
+  const [peso, setPeso] = useState('');
+  const [dias, setDias] = useState('');
+  const [custo, setCusto] = useState('');
+  const [precoVenda, setPrecoVenda] = useState('');
+  
+  // Estados Premium
+  const [ganhoPesoEsperado, setGanhoPesoEsperado] = useState('');
+  const [diasAdicionais, setDiasAdicionais] = useState('');
+  const [identificacao, setIdentificacao] = useState('');
+  
+  const [resultado, setResultado] = useState<ResultData | null>(null);
+  const [dadosSimulacao, setDadosSimulacao] = useState<SimulationData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [salvo, setSalvo] = useState(false);
+  const [erroDetalhes, setErroDetalhes] = useState('');
+
   // Verificar acesso Premium e autenticação
   useEffect(() => {
     if (!verificarPremium()) {
@@ -31,24 +49,6 @@ const Premium = () => {
       </div>
     );
   }
-  
-  // Estados básicos
-  const [peso, setPeso] = useState('');
-  const [dias, setDias] = useState('');
-  const [custo, setCusto] = useState('');
-  const [precoVenda, setPrecoVenda] = useState('');
-  
-  // Estados Premium
-  const [ganhoPesoEsperado, setGanhoPesoEsperado] = useState('');
-  const [diasAdicionais, setDiasAdicionais] = useState('');
-  const [identificacao, setIdentificacao] = useState('');
-  
-  const [resultado, setResultado] = useState<ResultData | null>(null);
-  const [dadosSimulacao, setDadosSimulacao] = useState<SimulationData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [salvando, setSalvando] = useState(false);
-  const [salvo, setSalvo] = useState(false);
-  const [erroDetalhes, setErroDetalhes] = useState('');
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (
     e: React.ChangeEvent<HTMLInputElement>
