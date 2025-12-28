@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, BellOff, Plus, Trash2, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Plus, Trash2, Calendar, Loader2, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { verificarPremium } from "@/lib/storage";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { verificarPremium, obterHistorico, HistoricoItem } from "@/lib/storage";
 import { obterAlertas, salvarAlerta, toggleAlerta, deletarAlerta, Alerta } from "@/lib/alertas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,6 +20,7 @@ const Alertas = () => {
   const { user, loading: authLoading } = useAuth();
 
   const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   
@@ -27,16 +29,21 @@ const Alertas = () => {
   const [dataAlerta, setDataAlerta] = useState('');
   const [horaAlerta, setHoraAlerta] = useState('09:00');
   const [identificacaoAnimal, setIdentificacaoAnimal] = useState('');
+  const [simulacaoSelecionada, setSimulacaoSelecionada] = useState<string>('');
   const [mensagem, setMensagem] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  const carregarAlertas = async () => {
+  const carregarDados = async () => {
     try {
       setCarregando(true);
-      const dados = await obterAlertas();
-      setAlertas(dados);
+      const [alertasData, historicoData] = await Promise.all([
+        obterAlertas(),
+        obterHistorico()
+      ]);
+      setAlertas(alertasData);
+      setHistorico(historicoData);
     } catch (error) {
-      console.error('Erro ao carregar alertas:', error);
+      console.error('Erro ao carregar dados:', error);
     } finally {
       setCarregando(false);
     }
@@ -55,7 +62,7 @@ const Alertas = () => {
 
   useEffect(() => {
     if (user) {
-      carregarAlertas();
+      carregarDados();
     }
   }, [user]);
 
@@ -108,10 +115,11 @@ const Alertas = () => {
       setDataAlerta('');
       setHoraAlerta('09:00');
       setIdentificacaoAnimal('');
+      setSimulacaoSelecionada('');
       setMensagem('');
       
       // Recarregar lista
-      await carregarAlertas();
+      await carregarDados();
       
     } catch (error) {
       console.error('Erro ao salvar alerta:', error);
@@ -246,16 +254,69 @@ const Alertas = () => {
 
             {/* Identificação do animal (se tipo = animal) */}
             {tipoAlerta === 'animal' && (
-              <div className="space-y-2">
-                <Label htmlFor="animal">Qual animal?</Label>
-                <input
-                  type="text"
-                  id="animal"
-                  placeholder="Ex: Cordeiro 23, Lote A"
-                  value={identificacaoAnimal}
-                  onChange={(e) => setIdentificacaoAnimal(e.target.value)}
-                  className="input-field"
-                />
+              <div className="space-y-4">
+                {/* Selecionar do histórico */}
+                {historico.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <History className="w-4 h-4" />
+                      Selecionar do histórico
+                    </Label>
+                    <Select
+                      value={simulacaoSelecionada}
+                      onValueChange={(value) => {
+                        setSimulacaoSelecionada(value);
+                        if (value) {
+                          const sim = historico.find(h => h.id === value);
+                          if (sim) {
+                            setIdentificacaoAnimal(sim.identificacao || `${sim.dados.peso}kg - ${sim.dados.dias} dias`);
+                            setMensagem(`Reavaliar: ${sim.identificacao || 'animal'} - Lucro atual: R$ ${sim.resultado.lucroAtual.toFixed(2)}`);
+                          }
+                        } else {
+                          setIdentificacaoAnimal('');
+                          setMensagem('');
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Escolher simulação salva..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhuma (inserir manualmente)</SelectItem>
+                        {historico.map((sim) => (
+                          <SelectItem key={sim.id} value={sim.id}>
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">
+                                {sim.identificacao || `${sim.dados.peso}kg`}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(sim.timestamp).toLocaleDateString('pt-BR')} - R$ {sim.resultado.lucroAtual.toFixed(2)}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Campo manual */}
+                <div className="space-y-2">
+                  <Label htmlFor="animal">
+                    {historico.length > 0 ? 'Ou digite manualmente' : 'Qual animal?'}
+                  </Label>
+                  <input
+                    type="text"
+                    id="animal"
+                    placeholder="Ex: Cordeiro 23, Lote A"
+                    value={identificacaoAnimal}
+                    onChange={(e) => {
+                      setIdentificacaoAnimal(e.target.value);
+                      setSimulacaoSelecionada(''); // Limpar seleção ao digitar
+                    }}
+                    className="input-field"
+                  />
+                </div>
               </div>
             )}
 
