@@ -67,7 +67,7 @@ const Index = () => {
 • Custo total: R$ ${resultado.custoTotal.toFixed(2)}
 • Lucro: R$ ${resultado.lucroAtual.toFixed(2)}
 
-🕐 ${new Date(resultado.timestamp).toLocaleString('pt-BR')}
+🕐 ${new Date(resultado.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
 
 ---
 Gerado por Ponto do Cordeiro`;
@@ -97,11 +97,7 @@ Gerado por Ponto do Cordeiro`;
       <div className="w-full max-w-md mx-auto space-y-6">
         {/* Header com Login */}
         <div className="flex justify-end">
-          {user ? (
-            <span className="text-sm text-muted-foreground">
-              ✅ {user.email?.split('@')[0]}
-            </span>
-          ) : (
+          {!user && (
             <Button
               variant="outline"
               size="sm"
@@ -262,7 +258,7 @@ Gerado por Ponto do Cordeiro`;
                 
                 <p className="text-sm">
                   Simulado em:{" "}
-                  {new Date(resultado.timestamp).toLocaleString("pt-BR")}
+                  {new Date(resultado.timestamp).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
                 </p>
               </div>
 
