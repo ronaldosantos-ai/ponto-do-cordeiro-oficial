@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,14 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-
-  // Se o usuário estiver logado, redireciona para o Premium
-  useEffect(() => {
-    if (!authLoading && user) {
-      navigate('/premium');
-    }
-  }, [user, authLoading, navigate]);
+  const { user } = useAuth();
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
