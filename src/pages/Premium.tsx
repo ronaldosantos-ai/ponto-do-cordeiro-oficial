@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
+import { salvarSimulacao } from "@/lib/storage";
+import { useToast } from "@/hooks/use-toast";
 
 const Premium = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Estados básicos
   const [peso, setPeso] = useState('');
@@ -16,9 +19,12 @@ const Premium = () => {
   // Estados Premium
   const [ganhoPesoEsperado, setGanhoPesoEsperado] = useState('');
   const [diasAdicionais, setDiasAdicionais] = useState('');
+  const [identificacao, setIdentificacao] = useState('');
   
   const [resultado, setResultado] = useState<ResultData | null>(null);
+  const [dadosSimulacao, setDadosSimulacao] = useState<SimulationData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [salvo, setSalvo] = useState(false);
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -45,6 +51,8 @@ const Premium = () => {
     
     const result = calcularProjecao(data);
     setResultado(result);
+    setDadosSimulacao(data);
+    setSalvo(false);
     setIsLoading(false);
   };
 
@@ -55,7 +63,26 @@ const Premium = () => {
     setPrecoVenda('');
     setGanhoPesoEsperado('');
     setDiasAdicionais('');
+    setIdentificacao('');
     setResultado(null);
+    setDadosSimulacao(null);
+    setSalvo(false);
+  };
+
+  const handleSalvar = () => {
+    if (!resultado || !dadosSimulacao) return;
+    
+    salvarSimulacao({
+      tipo: 'premium',
+      dados: dadosSimulacao,
+      resultado: resultado,
+      identificacao: identificacao || undefined
+    });
+    
+    setSalvo(true);
+    toast({
+      description: "✅ Simulação salva no histórico",
+    });
   };
 
   const compartilharWhatsApp = () => {
@@ -126,9 +153,19 @@ Gerado por Ponto do Cordeiro Premium`;
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
         </Button>
-        <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
-          ⭐ Premium
-        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/historico')}
+            className="p-2 hover:bg-secondary text-muted-foreground"
+          >
+            <History className="w-5 h-5 mr-1" />
+            <span className="text-sm">Histórico</span>
+          </Button>
+          <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
+            ⭐ Premium
+          </span>
+        </div>
       </header>
 
       {/* Título */}
@@ -191,6 +228,21 @@ Gerado por Ponto do Cordeiro Premium`;
             placeholder="Ex: 18.50"
             value={precoVenda}
             onChange={handleInputChange(setPrecoVenda)}
+            className="input-field"
+          />
+        </div>
+
+        {/* Campo identificação */}
+        <div>
+          <label className="text-label">Identificação do animal (opcional)</label>
+          <input
+            type="text"
+            placeholder="Ex: Cordeiro 23, Lote A"
+            value={identificacao}
+            onChange={(e) => {
+              setIdentificacao(e.target.value);
+              setResultado(null);
+            }}
             className="input-field"
           />
         </div>
@@ -308,6 +360,15 @@ Gerado por Ponto do Cordeiro Premium`;
           )}
 
           {/* Botões finais */}
+          <Button
+            onClick={handleSalvar}
+            disabled={salvo}
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Save className="w-5 h-5 mr-2" />
+            {salvo ? 'Salvo no histórico ✓' : 'Salvar no histórico'}
+          </Button>
+
           <Button
             variant="outline"
             onClick={compartilharWhatsApp}
