@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      alertas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_alerta: string
+          id: string
+          identificacao_animal: string | null
+          mensagem: string | null
+          simulacao_id: string | null
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_alerta: string
+          id?: string
+          identificacao_animal?: string | null
+          mensagem?: string | null
+          simulacao_id?: string | null
+          tipo?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_alerta?: string
+          id?: string
+          identificacao_animal?: string | null
+          mensagem?: string | null
+          simulacao_id?: string | null
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       historico_simulacoes: {
         Row: {
           created_at: string

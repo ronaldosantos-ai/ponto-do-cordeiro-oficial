@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, History, LogOut } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, History, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao, verificarPremium } from "@/lib/storage";
@@ -214,6 +214,14 @@ Gerado por Ponto do Cordeiro Premium`;
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
+            onClick={() => navigate('/alertas')}
+            className="p-2 hover:bg-secondary text-muted-foreground"
+          >
+            <Bell className="w-5 h-5 mr-1" />
+            <span className="text-sm">Alertas</span>
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => navigate('/historico')}
             className="p-2 hover:bg-secondary text-muted-foreground"
           >
@@ -416,6 +424,29 @@ Gerado por Ponto do Cordeiro Premium`;
               </p>
             </div>
           )}
+
+          {/* Card para criar alerta */}
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Bell className="text-blue-600 w-5 h-5 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">
+                  Criar alerta para este animal?
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Receba um lembrete para reavaliar a venda
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-3"
+              onClick={() => navigate('/alertas')}
+            >
+              Configurar alerta
+            </Button>
+          </div>
 
           {/* Botões finais */}
           <Button
