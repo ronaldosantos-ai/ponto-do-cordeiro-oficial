@@ -9,56 +9,91 @@ export interface HistoricoItem {
   timestamp: string;
 }
 
-const STORAGE_KEY = 'ponto_cordeiro_historico';
-
-export function salvarSimulacao(item: Omit<HistoricoItem, 'id' | 'timestamp'>): HistoricoItem {
-  const historico = obterHistorico();
-  const novoItem: HistoricoItem = {
-    ...item,
-    id: Date.now().toString(),
-    timestamp: new Date().toISOString()
-  };
-  
-  historico.unshift(novoItem);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(historico));
-  return novoItem;
+// Usar window.storage ao invés de localStorage
+export async function salvarSimulacao(item: Omit<HistoricoItem, 'id' | 'timestamp'>): Promise<HistoricoItem> {
+  try {
+    const novoItem: HistoricoItem = {
+      ...item,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    };
+    
+    // Salvar com chave única
+    await (window as any).storage.set(
+      `simulacao:${novoItem.id}`,
+      JSON.stringify(novoItem),
+      false // false = dados pessoais do usuário
+    );
+    
+    return novoItem;
+  } catch (error) {
+    console.error('Erro ao salvar:', error);
+    throw error;
+  }
 }
 
-export function obterHistorico(): HistoricoItem[] {
+export async function obterHistorico(): Promise<HistoricoItem[]> {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return [];
-    const parsed = JSON.parse(data);
-    return Array.isArray(parsed) ? parsed : [];
+    // Listar todas as chaves que começam com 'simulacao:'
+    const result = await (window as any).storage.list('simulacao:', false);
+    
+    if (!result || !result.keys) {
+      return [];
+    }
+    
+    // Buscar cada simulação
+    const promises = result.keys.map(async (key: string) => {
+      try {
+        const item = await (window as any).storage.get(key, false);
+        if (item && item.value) {
+          return JSON.parse(item.value) as HistoricoItem;
+        }
+        return null;
+      } catch (error) {
+        console.error(`Erro ao ler ${key}:`, error);
+        return null;
+      }
+    });
+    
+    const items = await Promise.all(promises);
+    
+    // Filtrar nulls e ordenar por data (mais recente primeiro)
+    return items
+      .filter((item): item is HistoricoItem => item !== null)
+      .sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
   } catch (error) {
-    console.error('Erro ao ler histórico:', error);
+    console.error('Erro ao obter histórico:', error);
     return [];
   }
 }
 
-export function limparHistorico(): void {
-  localStorage.removeItem(STORAGE_KEY);
+export async function deletarItem(id: string): Promise<void> {
+  try {
+    await (window as any).storage.delete(`simulacao:${id}`, false);
+  } catch (error) {
+    console.error('Erro ao deletar:', error);
+    throw error;
+  }
 }
 
-export function deletarItem(id: string): void {
-  const historico = obterHistorico();
-  const atualizado = historico.filter(item => item.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizado));
+export async function limparHistorico(): Promise<void> {
+  try {
+    const result = await (window as any).storage.list('simulacao:', false);
+    if (result && result.keys) {
+      // Deletar todas as simulações
+      await Promise.all(
+        result.keys.map((key: string) => (window as any).storage.delete(key, false))
+      );
+    }
+  } catch (error) {
+    console.error('Erro ao limpar histórico:', error);
+    throw error;
+  }
 }
 
-export function filtrarHistorico(dias: number | 'todos'): HistoricoItem[] {
-  const historico = obterHistorico();
-  if (dias === 'todos') return historico;
-  
-  const dataLimite = new Date();
-  dataLimite.setDate(dataLimite.getDate() - dias);
-  
-  return historico.filter(item => 
-    new Date(item.timestamp) >= dataLimite
-  );
-}
-
-// Funções de verificação Premium
+// Sistema de Premium (mantém no localStorage por enquanto)
 export function verificarPremium(): boolean {
   const premium = localStorage.getItem('ponto_cordeiro_premium');
   return premium === 'ativo';
