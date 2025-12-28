@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, History, Bell } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, History, Bell, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao, verificarPremium } from "@/lib/storage";
@@ -212,6 +212,14 @@ Gerado por Ponto do Cordeiro Premium`;
           Voltar
         </Button>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/settings')}
+            className="h-9 w-9"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
           <Button
             variant="ghost"
             onClick={() => navigate('/alertas')}
