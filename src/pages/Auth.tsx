@@ -258,7 +258,7 @@ const Auth = () => {
 
         <Button
           type="submit"
-          className="w-full h-12 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700"
+          className="w-full h-12 bg-primary hover:bg-primary/90"
           disabled={loading}
         >
           {loading ? (
