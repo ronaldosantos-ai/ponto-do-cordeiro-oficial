@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
 import { calcularDecisao, ResultData, SimulationData } from "@/lib/calculations";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
@@ -19,12 +21,36 @@ const Index = () => {
 
   const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
 
+  // Validação de campos
+  const validarCampos = (): string | null => {
+    if (!peso || parseFloat(peso) <= 0) {
+      return "Peso deve ser maior que zero";
+    }
+    if (!dias || parseInt(dias) <= 0) {
+      return "Dias deve ser maior que zero";
+    }
+    if (!custo || parseFloat(custo) < 0) {
+      return "Custo não pode ser negativo";
+    }
+    if (!precoVenda || parseFloat(precoVenda) <= 0) {
+      return "Preço de venda deve ser maior que zero";
+    }
+    return null;
+  };
+
   const handleCalcular = async () => {
-    if (!isFormValid) return;
+    const erro = validarCampos();
+    if (erro) {
+      toast({
+        title: "⚠️ Dados inválidos",
+        description: erro,
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsCalculating(true);
     
-    // Small delay for UX feedback
     await new Promise(resolve => setTimeout(resolve, 300));
 
     const result = calcularDecisao({
@@ -93,16 +119,17 @@ Gerado por Ponto do Cordeiro`;
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6 py-8">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6 pb-24">
       <div className="w-full max-w-md md:max-w-sm lg:max-w-md mx-auto space-y-6">
         {/* Header com Login */}
         <div className="flex justify-end">
           {!user && (
             <Button
               variant="outline"
-              size="sm"
+              size="lg"
               onClick={() => navigate('/auth')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 h-12"
+              aria-label="Entrar na conta"
             >
               <LogIn className="w-4 h-4" />
               Entrar
@@ -114,15 +141,15 @@ Gerado por Ponto do Cordeiro`;
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-foreground">Ponto do Cordeiro</h1>
           <p className="text-muted-foreground text-base">
-            Decidir vender ou segurar em 60 segundos
+            Decisão inteligente em 60 segundos
           </p>
         </div>
 
         {/* Formulário */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Peso do cordeiro */}
           <div className="space-y-2">
-            <Label htmlFor="peso" className="text-foreground">
+            <Label htmlFor="peso" className="text-foreground text-base">
               Peso do cordeiro (kg)
             </Label>
             <Input
@@ -136,12 +163,13 @@ Gerado por Ponto do Cordeiro`;
               className="h-14 text-lg border-2"
               value={peso}
               onChange={(e) => handleInputChange(setPeso, e.target.value)}
+              aria-describedby="peso-desc"
             />
           </div>
 
           {/* Dias em cativeiro */}
           <div className="space-y-2">
-            <Label htmlFor="dias" className="text-foreground">
+            <Label htmlFor="dias" className="text-foreground text-base">
               Dias em cativeiro
             </Label>
             <Input
@@ -158,7 +186,7 @@ Gerado por Ponto do Cordeiro`;
 
           {/* Custo diário */}
           <div className="space-y-2">
-            <Label htmlFor="custo" className="text-foreground">
+            <Label htmlFor="custo" className="text-foreground text-base">
               Custo diário (R$/dia)
             </Label>
             <Input
@@ -176,7 +204,7 @@ Gerado por Ponto do Cordeiro`;
 
           {/* Preço de venda */}
           <div className="space-y-2">
-            <Label htmlFor="precoVenda" className="text-foreground">
+            <Label htmlFor="precoVenda" className="text-foreground text-base">
               Preço de venda (R$/kg)
             </Label>
             <Input
@@ -198,11 +226,12 @@ Gerado por Ponto do Cordeiro`;
             className="w-full h-14 text-lg bg-positive hover:bg-positive-hover"
             disabled={!isFormValid || isCalculating}
             onClick={handleCalcular}
+            aria-label="Calcular decisão de venda"
           >
             {isCalculating ? (
               <>
-                <Loader2 className="animate-spin mr-2" />
-                Calculando...
+                <Loader2 className="animate-spin mr-2" aria-hidden="true" />
+                <span role="status">Calculando...</span>
               </>
             ) : (
               "Calcular agora"
@@ -213,21 +242,23 @@ Gerado por Ponto do Cordeiro`;
         {/* Card de Resultado */}
         {resultado && (
           <div
-            className={`mt-8 p-6 rounded-lg border-2 ${
+            className={`mt-8 p-6 rounded-lg border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 ${
               resultado.decisao === "vender"
                 ? "border-positive bg-green-50"
                 : "border-destructive bg-red-50"
             }`}
+            role="region"
+            aria-label="Resultado da simulação"
           >
             <div className="flex flex-col items-center text-center">
               {resultado.decisao === "vender" ? (
-                <TrendingUp className="w-12 h-12 text-positive" />
+                <TrendingUp className="w-12 h-12 text-positive" aria-hidden="true" />
               ) : (
-                <TrendingDown className="w-12 h-12 text-destructive" />
+                <TrendingDown className="w-12 h-12 text-destructive" aria-hidden="true" />
               )}
 
               <p
-                className={`text-2xl font-bold mt-4 ${
+                className={`text-3xl font-bold mt-4 ${
                   resultado.decisao === "vender"
                     ? "text-green-700"
                     : "text-red-700"
@@ -265,10 +296,11 @@ Gerado por Ponto do Cordeiro`;
               {/* Botão WhatsApp */}
               <Button
                 variant="outline"
-                className="mt-6 w-full h-12 border-2 border-positive text-positive hover:bg-green-50"
+                className="mt-6 w-full h-14 border-2 border-positive text-positive hover:bg-green-50"
                 onClick={compartilharWhatsApp}
+                aria-label="Enviar resultado para WhatsApp"
               >
-                <MessageCircle className="mr-2 h-5 w-5" />
+                <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                 Enviar resultado para WhatsApp
               </Button>
 
@@ -284,7 +316,7 @@ Gerado por Ponto do Cordeiro`;
             {/* Oferta Premium */}
             <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
               <div className="flex items-start gap-3">
-                <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-1" />
+                <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-1" aria-hidden="true" />
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-foreground">
                     Recursos Premium
@@ -303,7 +335,7 @@ Gerado por Ponto do Cordeiro`;
               </div>
               <Button
                 onClick={() => navigate('/premium-info')}
-                className="w-full mt-4 h-10 bg-amber-600 hover:bg-amber-700 text-white"
+                className="w-full mt-4 h-12 bg-amber-600 hover:bg-amber-700 text-white"
               >
                 Experimentar Premium
               </Button>

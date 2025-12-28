@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, BellOff, Plus, Trash2, Calendar, Loader2, History, Settings } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Plus, Trash2, Calendar, Loader2, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -13,6 +13,7 @@ import { verificarPremium, obterHistorico, HistoricoItem } from "@/lib/storage";
 import { obterAlertas, salvarAlerta, toggleAlerta, deletarAlerta, Alerta } from "@/lib/alertas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { EmptyState } from "@/components/EmptyState";
 
 const Alertas = () => {
   const navigate = useNavigate();
@@ -44,6 +45,11 @@ const Alertas = () => {
       setHistorico(historicoData);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+      toast({
+        title: "❌ Erro ao carregar",
+        description: "Tente novamente",
+        variant: "destructive"
+      });
     } finally {
       setCarregando(false);
     }
@@ -69,7 +75,7 @@ const Alertas = () => {
   // Loading state
   if (!verificarPremium() || authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -78,7 +84,8 @@ const Alertas = () => {
   const handleSalvarAlerta = async () => {
     if (!dataAlerta) {
       toast({
-        title: "⚠️ Selecione uma data",
+        title: "⚠️ Atenção",
+        description: "Selecione uma data",
         variant: "destructive"
       });
       return;
@@ -87,7 +94,8 @@ const Alertas = () => {
     const dataCompleta = new Date(`${dataAlerta}T${horaAlerta}:00`);
     if (dataCompleta <= new Date()) {
       toast({
-        title: "⚠️ A data deve ser no futuro",
+        title: "⚠️ Atenção",
+        description: "A data deve ser no futuro",
         variant: "destructive"
       });
       return;
@@ -125,6 +133,7 @@ const Alertas = () => {
       console.error('Erro ao salvar alerta:', error);
       toast({
         title: "❌ Erro ao criar alerta",
+        description: "Tente novamente",
         variant: "destructive"
       });
     } finally {
@@ -138,8 +147,15 @@ const Alertas = () => {
       setAlertas(prev => 
         prev.map(a => a.id === id ? { ...a, ativo } : a)
       );
+      toast({
+        title: ativo ? "✅ Alerta ativado" : "⏸️ Alerta pausado"
+      });
     } catch (error) {
       console.error('Erro ao atualizar alerta:', error);
+      toast({
+        title: "❌ Erro ao atualizar",
+        variant: "destructive"
+      });
     }
   };
 
@@ -148,7 +164,7 @@ const Alertas = () => {
       await deletarAlerta(id);
       setAlertas(prev => prev.filter(a => a.id !== id));
       toast({
-        title: "🗑️ Alerta removido"
+        title: "✅ Alerta removido"
       });
     } catch (error) {
       console.error('Erro ao deletar alerta:', error);
@@ -178,37 +194,28 @@ const Alertas = () => {
         <Button
           variant="ghost"
           onClick={() => navigate('/premium')}
-          className="p-2 hover:bg-secondary"
+          className="p-2 hover:bg-secondary h-12"
+          aria-label="Voltar para Premium"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
         </Button>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/settings')}
-            className="h-9 w-9"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
-          <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
-            ⭐ Premium
-          </span>
-        </div>
+        <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
+          ⭐ Premium
+        </span>
       </header>
 
       {/* Título */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-foreground">Alertas e Lembretes</h1>
-        <p className="text-muted-foreground text-sm mt-1">Receba lembretes para reavaliar vendas</p>
+        <p className="text-muted-foreground text-sm mt-1">Controle como e quando receber lembretes</p>
       </div>
 
       {/* Botão Novo Alerta */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="w-full h-12 mb-6 bg-primary hover:bg-primary/90">
-            <Plus className="w-5 h-5 mr-2" />
+          <Button className="w-full h-14 mb-6 bg-primary hover:bg-primary/90 text-lg">
+            <Plus className="w-5 h-5 mr-2" aria-hidden="true" />
             Novo alerta
           </Button>
         </DialogTrigger>
@@ -217,10 +224,10 @@ const Alertas = () => {
             <DialogTitle>Criar novo alerta</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-5 pt-4">
+          <div className="space-y-4 pt-4">
             {/* Tipo de alerta */}
             <div className="space-y-3">
-              <Label>Tipo de alerta</Label>
+              <Label className="text-base">Tipo de alerta</Label>
               <RadioGroup
                 value={tipoAlerta}
                 onValueChange={(v) => setTipoAlerta(v as 'data' | 'animal')}
@@ -228,18 +235,18 @@ const Alertas = () => {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="data" id="tipo-data" />
-                  <Label htmlFor="tipo-data" className="cursor-pointer">Por data</Label>
+                  <Label htmlFor="tipo-data" className="cursor-pointer text-base">Por data</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="animal" id="tipo-animal" />
-                  <Label htmlFor="tipo-animal" className="cursor-pointer">Por animal</Label>
+                  <Label htmlFor="tipo-animal" className="cursor-pointer text-base">Por animal</Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* Data do alerta */}
             <div className="space-y-2">
-              <Label htmlFor="data">Quando lembrar?</Label>
+              <Label htmlFor="data" className="text-base">Quando lembrar?</Label>
               <input
                 type="date"
                 id="data"
@@ -252,7 +259,7 @@ const Alertas = () => {
 
             {/* Hora */}
             <div className="space-y-2">
-              <Label htmlFor="hora">Que horas?</Label>
+              <Label htmlFor="hora" className="text-base">Que horas?</Label>
               <input
                 type="time"
                 id="hora"
@@ -268,8 +275,8 @@ const Alertas = () => {
                 {/* Selecionar do histórico */}
                 {historico.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <History className="w-4 h-4" />
+                    <Label className="flex items-center gap-2 text-base">
+                      <History className="w-4 h-4" aria-hidden="true" />
                       Selecionar do histórico
                     </Label>
                     <Select
@@ -292,7 +299,7 @@ const Alertas = () => {
                         }
                       }}
                     >
-                      <SelectTrigger className="h-12">
+                      <SelectTrigger className="h-14 text-base">
                         <SelectValue placeholder="Escolher simulação salva..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -316,7 +323,7 @@ const Alertas = () => {
 
                 {/* Campo manual */}
                 <div className="space-y-2">
-                  <Label htmlFor="animal">
+                  <Label htmlFor="animal" className="text-base">
                     {historico.length > 0 ? 'Ou digite manualmente' : 'Qual animal?'}
                   </Label>
                   <input
@@ -326,7 +333,7 @@ const Alertas = () => {
                     value={identificacaoAnimal}
                     onChange={(e) => {
                       setIdentificacaoAnimal(e.target.value);
-                      setSimulacaoSelecionada(undefined); // Limpar seleção ao digitar
+                      setSimulacaoSelecionada(undefined);
                     }}
                     className="input-field"
                   />
@@ -336,13 +343,13 @@ const Alertas = () => {
 
             {/* Mensagem */}
             <div className="space-y-2">
-              <Label htmlFor="mensagem">Mensagem (opcional)</Label>
+              <Label htmlFor="mensagem" className="text-base">Mensagem (opcional)</Label>
               <Textarea
                 id="mensagem"
                 placeholder="Ex: Reavaliar venda do lote A"
                 value={mensagem}
                 onChange={(e) => setMensagem(e.target.value.slice(0, 200))}
-                className="resize-none"
+                className="resize-none min-h-[80px] text-base"
                 rows={3}
               />
               <span className="text-xs text-muted-foreground">{mensagem.length}/200</span>
@@ -352,12 +359,12 @@ const Alertas = () => {
             <Button
               onClick={handleSalvarAlerta}
               disabled={salvando}
-              className="w-full h-12"
+              className="w-full h-14 text-base"
             >
               {salvando ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Salvando...
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
+                  <span role="status">Salvando...</span>
                 </>
               ) : (
                 'Criar alerta'
@@ -369,15 +376,15 @@ const Alertas = () => {
 
       {/* Lista de alertas */}
       {carregando ? (
-        <div className="flex justify-center py-12">
+        <div className="flex justify-center py-12" role="status" aria-label="Carregando alertas">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : alertas.length === 0 ? (
-        <div className="text-center py-12">
-          <BellOff className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium text-foreground">Nenhum alerta configurado</p>
-          <p className="text-sm text-muted-foreground mt-1">Crie alertas para lembrar de reavaliar vendas</p>
-        </div>
+        <EmptyState
+          icone={<BellOff className="w-20 h-20" />}
+          titulo="Nenhum alerta configurado"
+          descricao="Configure lembretes para reavaliar vendas"
+        />
       ) : (
         <div className="space-y-4">
           {alertas.map((alerta) => (
@@ -385,22 +392,23 @@ const Alertas = () => {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   {alerta.tipo === 'animal' ? (
-                    <Bell className="w-5 h-5 text-amber-600" />
+                    <Bell className="w-5 h-5 text-amber-600" aria-hidden="true" />
                   ) : (
-                    <Calendar className="w-5 h-5 text-blue-600" />
+                    <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
                   )}
-                  <span className="font-semibold text-foreground">
+                  <span className="font-semibold text-foreground text-base">
                     {formatarData(alerta.dataAlerta)}
                   </span>
                 </div>
                 <Switch
                   checked={alerta.ativo}
                   onCheckedChange={(checked) => handleToggle(alerta.id, checked)}
+                  aria-label={alerta.ativo ? "Desativar alerta" : "Ativar alerta"}
                 />
               </div>
 
               {alerta.identificacaoAnimal && (
-                <p className="text-sm font-medium text-foreground mb-1">
+                <p className="text-base font-medium text-foreground mb-1">
                   {alerta.identificacaoAnimal}
                 </p>
               )}
@@ -417,11 +425,12 @@ const Alertas = () => {
                 </span>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => handleDelete(alerta.id)}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 p-2"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-10 w-10"
+                  aria-label="Remover alerta"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-5 h-5" />
                 </Button>
               </div>
             </Card>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { AlertasNotifier } from "./components/AlertasNotifier";
+import { BottomNav } from "./components/BottomNav";
 import Index from "./pages/Index";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <BottomNav />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

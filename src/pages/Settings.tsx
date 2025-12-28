@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon } from "lucide-react";
+import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,17 +32,19 @@ interface SettingsItemProps {
 function SettingsItem({ icone, titulo, descricao, acao, onClick }: SettingsItemProps) {
   return (
     <div 
-      className={`flex items-center justify-between p-4 border-b border-border last:border-b-0 ${onClick ? 'cursor-pointer hover:bg-secondary/50' : ''}`}
+      className={`flex items-center justify-between p-4 border-b border-border last:border-b-0 ${onClick ? 'cursor-pointer hover:bg-secondary/50 active:bg-secondary' : ''}`}
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       <div className="flex items-start gap-3 flex-1">
-        <div className="text-muted-foreground mt-0.5">
+        <div className="text-muted-foreground mt-0.5" aria-hidden="true">
           {icone}
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-foreground">{titulo}</p>
+          <p className="text-base font-medium text-foreground">{titulo}</p>
           {descricao && (
-            <p className="text-xs text-muted-foreground mt-1">{descricao}</p>
+            <p className="text-sm text-muted-foreground mt-1">{descricao}</p>
           )}
         </div>
       </div>
@@ -81,6 +83,8 @@ const Settings = () => {
   const [numSimulacoes, setNumSimulacoes] = useState(0);
   const [numAlertas, setNumAlertas] = useState(0);
   const [espacoUsado, setEspacoUsado] = useState('0 KB');
+  const [limpando, setLimpando] = useState(false);
+  const [exportando, setExportando] = useState(false);
 
   useEffect(() => {
     // Carregar configurações
@@ -125,7 +129,6 @@ const Settings = () => {
   }
 
   function handleLimparCache() {
-    // Limpar apenas dados temporários (não alertas nem histórico)
     const keysToKeep = ['ponto_cordeiro_premium', 'config_alertas_ativados', 'config_notificacoes_gerais'];
     const keysToRemove: string[] = [];
     
@@ -144,6 +147,7 @@ const Settings = () => {
 
   async function exportarDados() {
     try {
+      setExportando(true);
       const historico = await obterHistorico();
       const alertas = await obterAlertas();
       
@@ -169,13 +173,18 @@ const Settings = () => {
     } catch (error) {
       toast({ 
         title: "❌ Erro ao exportar",
+        description: "Tente novamente",
         variant: "destructive"
       });
+    } finally {
+      setExportando(false);
     }
   }
 
   async function handleLimparTudo() {
     try {
+      setLimpando(true);
+      
       // Limpar histórico
       await limparHistorico();
       
@@ -194,14 +203,17 @@ const Settings = () => {
     } catch (error) {
       toast({ 
         title: "❌ Erro ao limpar dados",
+        description: "Tente novamente",
         variant: "destructive"
       });
+    } finally {
+      setLimpando(false);
     }
   }
 
   function handleDesativarPremium() {
     desativarPremium();
-    toast({ title: "Premium desativado" });
+    toast({ title: "ℹ️ Premium desativado" });
     navigate('/');
   }
 
@@ -210,18 +222,19 @@ const Settings = () => {
   }
 
   return (
-    <div className="page-container pb-8">
+    <div className="page-container">
       {/* Header */}
       <header className="flex items-center justify-between mb-6 animate-fade-in">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="p-2 hover:bg-secondary"
+          className="p-2 hover:bg-secondary h-12"
+          aria-label="Voltar"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Voltar
         </Button>
-        <SettingsIcon className="w-5 h-5 text-muted-foreground" />
+        <SettingsIcon className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
       </header>
 
       {/* Título */}
@@ -234,30 +247,32 @@ const Settings = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Bell className="w-5 h-5 text-blue-600" />
+              <Bell className="w-5 h-5 text-primary" aria-hidden="true" />
               Notificações
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <SettingsItem
-              icone={<Bell className="w-4 h-4" />}
+              icone={<Bell className="w-5 h-5" />}
               titulo="Alertas ativados"
               descricao="Receber lembretes de alertas configurados"
               acao={
                 <Switch
                   checked={alertasAtivados}
                   onCheckedChange={toggleAlertasConfig}
+                  aria-label="Ativar ou desativar alertas"
                 />
               }
             />
             <SettingsItem
-              icone={<Bell className="w-4 h-4" />}
+              icone={<Bell className="w-5 h-5" />}
               titulo="Notificações gerais"
               descricao="Receber avisos e atualizações do app"
               acao={
                 <Switch
                   checked={notificacoesGerais}
                   onCheckedChange={toggleNotificacoes}
+                  aria-label="Ativar ou desativar notificações gerais"
                 />
               }
             />
@@ -269,32 +284,32 @@ const Settings = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Crown className="w-5 h-5 text-amber-600" />
+                <Crown className="w-5 h-5 text-amber-600" aria-hidden="true" />
                 Conta Premium
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <SettingsItem
-                icone={<Crown className="w-4 h-4" />}
+                icone={<Crown className="w-5 h-5" />}
                 titulo="Status da conta"
                 descricao="Você tem acesso a todos os recursos"
                 acao={
                   <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                    ✅ Premium Ativo
+                    ✅ Ativo
                   </Badge>
                 }
               />
               <SettingsItem
-                icone={<Database className="w-4 h-4" />}
+                icone={<Database className="w-5 h-5" />}
                 titulo="Dados sincronizados"
-                descricao={`${numSimulacoes} simulações no histórico • ${numAlertas} alertas ativos`}
+                descricao={`${numSimulacoes} simulações • ${numAlertas} alertas ativos`}
               />
               <div className="p-4 border-t border-border">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                      className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50"
                     >
                       Desativar Premium
                     </Button>
@@ -307,10 +322,10 @@ const Settings = () => {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDesativarPremium}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-red-600 hover:bg-red-700 h-12"
                       >
                         Desativar
                       </AlertDialogAction>
@@ -326,20 +341,20 @@ const Settings = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Database className="w-5 h-5 text-purple-600" />
+              <Database className="w-5 h-5 text-purple-600" aria-hidden="true" />
               Dados e Uso
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <SettingsItem
-              icone={<Database className="w-4 h-4" />}
+              icone={<Database className="w-5 h-5" />}
               titulo="Espaço utilizado"
               descricao={`Aproximadamente ${espacoUsado} em uso local`}
             />
             <div className="p-4 space-y-3 border-t border-border">
               <Button 
                 variant="outline" 
-                className="w-full"
+                className="w-full h-12"
                 onClick={handleLimparCache}
               >
                 Limpar cache
@@ -348,11 +363,21 @@ const Settings = () => {
               {isPremium && (
                 <Button 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full h-12"
                   onClick={exportarDados}
+                  disabled={exportando}
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar dados
+                  {exportando ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                      Exportando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                      Exportar dados
+                    </>
+                  )}
                 </Button>
               )}
               
@@ -360,9 +385,9 @@ const Settings = () => {
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
+                    <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
                     Limpar todos os dados
                   </Button>
                 </AlertDialogTrigger>
@@ -371,7 +396,7 @@ const Settings = () => {
                     <AlertDialogTitle>⚠️ Tem certeza absoluta?</AlertDialogTitle>
                     <AlertDialogDescription asChild>
                       <div>
-                        <p>Esta ação é IRREVERSÍVEL. Todos os seus dados serão perdidos permanentemente:</p>
+                        <p>Use apenas se quiser recomeçar do zero. Esta ação é IRREVERSÍVEL. Todos os seus dados serão perdidos:</p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                           <li>Todas as simulações salvas</li>
                           <li>Todos os alertas configurados</li>
@@ -382,12 +407,20 @@ const Settings = () => {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleLimparTudo}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 h-12"
+                      disabled={limpando}
                     >
-                      Sim, deletar tudo
+                      {limpando ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Limpando...
+                        </>
+                      ) : (
+                        'Sim, deletar tudo'
+                      )}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -400,33 +433,33 @@ const Settings = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Info className="w-5 h-5 text-gray-600" />
+              <Info className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
               Sobre o App
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <SettingsItem
-              icone={<Info className="w-4 h-4" />}
+              icone={<Info className="w-5 h-5" />}
               titulo="Ponto do Cordeiro"
               descricao="Versão 1.0.0"
             />
             <SettingsItem
-              icone={<Info className="w-4 h-4" />}
+              icone={<Info className="w-5 h-5" />}
               titulo="Descrição"
               descricao="Decisão rápida de venda de cordeiros para produtores rurais"
             />
             <SettingsItem
-              icone={<Info className="w-4 h-4" />}
+              icone={<Info className="w-5 h-5" />}
               titulo="Termos de uso"
               onClick={() => abrirLink('#')}
             />
             <SettingsItem
-              icone={<Info className="w-4 h-4" />}
+              icone={<Info className="w-5 h-5" />}
               titulo="Política de privacidade"
               onClick={() => abrirLink('#')}
             />
             <SettingsItem
-              icone={<Info className="w-4 h-4" />}
+              icone={<Info className="w-5 h-5" />}
               titulo="Suporte via WhatsApp"
               onClick={() => abrirLink('https://wa.me/5500000000000')}
             />
