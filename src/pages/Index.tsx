@@ -1,60 +1,101 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Settings, Crown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Index = () => {
+  const [peso, setPeso] = useState("");
+  const [dias, setDias] = useState("");
+  const [custo, setCusto] = useState("");
+
+  const isFormValid = peso !== "" && dias !== "" && custo !== "";
+
+  const handleCalcular = () => {
+    console.log({
+      peso: parseFloat(peso),
+      dias: parseInt(dias),
+      custo: parseFloat(custo),
+    });
+  };
+
   return (
-    <div className="page-container">
-      {/* Header */}
-      <header className="flex items-center justify-between mb-8 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">🐑 Ponto do Cordeiro</h1>
-          <p className="text-muted-foreground text-sm mt-1">Calculadora de preços</p>
+    <div className="min-h-screen bg-background flex items-center justify-center px-6">
+      <div className="w-full max-w-md mx-auto space-y-6">
+        {/* Título */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">Ponto do Cordeiro</h1>
+          <p className="text-muted-foreground text-base">
+            Decidir vender ou segurar em 60 segundos
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Link 
-            to="/premium" 
-            className="p-3 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
-            aria-label="Premium"
+
+        {/* Formulário */}
+        <div className="space-y-6">
+          {/* Peso do cordeiro */}
+          <div className="space-y-2">
+            <Label htmlFor="peso" className="text-foreground">
+              Peso do cordeiro (kg)
+            </Label>
+            <Input
+              id="peso"
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="Ex: 35.5"
+              autoFocus
+              inputMode="decimal"
+              className="h-14 text-lg border-2"
+              value={peso}
+              onChange={(e) => setPeso(e.target.value)}
+            />
+          </div>
+
+          {/* Dias em cativeiro */}
+          <div className="space-y-2">
+            <Label htmlFor="dias" className="text-foreground">
+              Dias em cativeiro
+            </Label>
+            <Input
+              id="dias"
+              type="number"
+              min="0"
+              placeholder="Ex: 45"
+              inputMode="decimal"
+              className="h-14 text-lg border-2"
+              value={dias}
+              onChange={(e) => setDias(e.target.value)}
+            />
+          </div>
+
+          {/* Custo diário */}
+          <div className="space-y-2">
+            <Label htmlFor="custo" className="text-foreground">
+              Custo diário (R$/dia)
+            </Label>
+            <Input
+              id="custo"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Ex: 3.50"
+              inputMode="decimal"
+              className="h-14 text-lg border-2"
+              value={custo}
+              onChange={(e) => setCusto(e.target.value)}
+            />
+          </div>
+
+          {/* Botão Calcular */}
+          <Button
+            variant="default"
+            className="w-full h-14 text-lg bg-positive hover:bg-positive-hover"
+            disabled={!isFormValid}
+            onClick={handleCalcular}
           >
-            <Crown className="w-5 h-5" />
-          </Link>
-          <Link 
-            to="/settings" 
-            className="p-3 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-            aria-label="Configurações"
-          >
-            <Settings className="w-5 h-5" />
-          </Link>
+            Calcular agora
+          </Button>
         </div>
-      </header>
-
-      {/* Main Content Placeholder */}
-      <main className="space-y-6">
-        <div className="card-container animate-slide-up">
-          <h2 className="section-title">Simulação de Preço</h2>
-          <p className="text-muted-foreground">
-            Componente SimulationForm será adicionado aqui
-          </p>
-        </div>
-
-        <div className="card-container animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <h2 className="section-title">Resultado</h2>
-          <p className="text-muted-foreground">
-            Componente ResultDisplay será adicionado aqui
-          </p>
-        </div>
-
-        <div className="card-container animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <h2 className="section-title">Histórico</h2>
-          <p className="text-muted-foreground">
-            Componente HistoryList será adicionado aqui
-          </p>
-        </div>
-      </main>
-
-      {/* Bottom Navigation Spacer */}
-      <div className="h-20" />
+      </div>
     </div>
   );
 };
