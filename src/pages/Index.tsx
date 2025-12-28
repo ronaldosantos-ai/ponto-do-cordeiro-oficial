@@ -1,21 +1,29 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, TrendingDown } from "lucide-react";
-import { calcularDecisao, ResultData } from "@/lib/calculations";
+import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2 } from "lucide-react";
+import { calcularDecisao, ResultData, SimulationData } from "@/lib/calculations";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [resultado, setResultado] = useState<ResultData | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
 
-  const handleCalcular = () => {
+  const handleCalcular = async () => {
     if (!isFormValid) return;
+
+    setIsCalculating(true);
+    
+    // Small delay for UX feedback
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     const result = calcularDecisao({
       peso: parseFloat(peso),
@@ -24,6 +32,46 @@ const Index = () => {
       precoVenda: parseFloat(precoVenda),
     });
     setResultado(result);
+    setIsCalculating(false);
+  };
+
+  const compartilharWhatsApp = () => {
+    if (!resultado) return;
+    
+    const dados: SimulationData = {
+      peso: parseFloat(peso),
+      dias: parseInt(dias),
+      custo: parseFloat(custo),
+      precoVenda: parseFloat(precoVenda),
+    };
+    
+    const emoji = resultado.decisao === 'vender' ? '💰' : '⏳';
+    const decisaoTexto = resultado.decisao === 'vender' 
+      ? 'Vale a pena vender hoje' 
+      : 'Melhor segurar e engordar mais';
+    
+    const mensagem = `${emoji} *Ponto do Cordeiro*
+
+*Decisão: ${decisaoTexto}*
+
+📊 Simulação:
+• Peso: ${dados.peso} kg
+• Dias em cativeiro: ${dados.dias}
+• Custo diário: R$ ${dados.custo.toFixed(2)}
+• Preço venda: R$ ${dados.precoVenda.toFixed(2)}/kg
+
+💵 Resultado:
+• Receita: R$ ${resultado.receitaAtual.toFixed(2)}
+• Custo total: R$ ${resultado.custoTotal.toFixed(2)}
+• Lucro: R$ ${resultado.lucroAtual.toFixed(2)}
+
+🕐 ${new Date(resultado.timestamp).toLocaleString('pt-BR')}
+
+---
+Gerado por Ponto do Cordeiro`;
+
+    const url = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
   };
 
   const handleNovaSimulacao = () => {
@@ -131,10 +179,17 @@ const Index = () => {
           <Button
             variant="default"
             className="w-full h-14 text-lg bg-positive hover:bg-positive-hover"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isCalculating}
             onClick={handleCalcular}
           >
-            Calcular agora
+            {isCalculating ? (
+              <>
+                <Loader2 className="animate-spin mr-2" />
+                Calculando...
+              </>
+            ) : (
+              "Calcular agora"
+            )}
           </Button>
         </div>
 
@@ -190,13 +245,44 @@ const Index = () => {
                 </p>
               </div>
 
+              {/* Botão WhatsApp */}
               <Button
                 variant="outline"
-                className="mt-6 w-full h-12 border-2"
+                className="mt-6 w-full h-12 border-2 border-positive text-positive hover:bg-green-50"
+                onClick={compartilharWhatsApp}
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Enviar resultado para WhatsApp
+              </Button>
+
+              <Button
+                variant="outline"
+                className="mt-3 w-full h-12 border-2"
                 onClick={handleNovaSimulacao}
               >
                 Nova simulação
               </Button>
+            </div>
+
+            {/* Oferta Premium */}
+            <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+              <div className="flex items-start gap-3">
+                <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-foreground">
+                    Quer simular ganho de peso futuro?
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Com o Premium você pode calcular se vale a pena segurar mais tempo considerando o ganho de peso esperado.
+                  </p>
+                  <Button
+                    className="mt-3 w-full h-10 bg-amber-600 hover:bg-amber-700 text-white"
+                    onClick={() => navigate('/premium')}
+                  >
+                    Ver Premium
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
