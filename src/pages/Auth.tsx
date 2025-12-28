@@ -179,9 +179,11 @@ const Auth = () => {
 
       {/* Logo */}
       <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-          <span className="text-4xl">🐑</span>
-        </div>
+        <img 
+          src="/icon.png" 
+          alt="Ponto do Cordeiro" 
+          className="w-20 h-20 rounded-2xl mx-auto mb-4"
+        />
         <h1 className="text-2xl font-bold text-foreground">Ponto do Cordeiro</h1>
         <p className="text-muted-foreground mt-1">{getModeTitle()}</p>
       </div>
