@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { HistoricoItem, obterHistorico, deletarItem, limparHistorico, verificarPremium } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
 
@@ -31,17 +32,26 @@ const filtros: { label: string; value: FiltroTipo }[] = [
 const Historico = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
-  // Verificar acesso Premium
+  // Verificar acesso Premium e autenticação
   useEffect(() => {
     if (!verificarPremium()) {
       navigate('/premium-info');
+      return;
     }
-  }, [navigate]);
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [navigate, user, authLoading]);
 
-  // Se não for premium, não renderiza nada
-  if (!verificarPremium()) {
-    return null;
+  // Se não for premium ou não autenticado, mostrar loading
+  if (!verificarPremium() || authLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const [filtro, setFiltro] = useState<FiltroTipo>(7);

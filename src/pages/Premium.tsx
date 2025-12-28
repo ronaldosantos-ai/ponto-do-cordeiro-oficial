@@ -1,25 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, History } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, History, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao, verificarPremium } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Premium = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading, signOut } = useAuth();
 
-  // Verificar acesso Premium
+  // Verificar acesso Premium e autenticação
   useEffect(() => {
     if (!verificarPremium()) {
       navigate('/premium-info');
+      return;
     }
-  }, [navigate]);
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [navigate, user, authLoading]);
 
-  // Se não for premium, não renderiza nada
-  if (!verificarPremium()) {
-    return null;
+  // Se não for premium ou não autenticado, não renderiza nada
+  if (!verificarPremium() || authLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
   
   // Estados básicos

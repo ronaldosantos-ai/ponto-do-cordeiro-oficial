@@ -10,30 +10,28 @@ export interface HistoricoItem {
   timestamp: string;
 }
 
-// Gerar ou recuperar ID do dispositivo
-function getDeviceId(): string {
-  const key = 'ponto_cordeiro_device_id';
-  let deviceId = localStorage.getItem(key);
-  
-  if (!deviceId) {
-    deviceId = `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem(key, deviceId);
-  }
-  
-  return deviceId;
+// Obter usuário atual
+async function getCurrentUserId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || null;
 }
 
 // SALVAR SIMULAÇÃO
 export async function salvarSimulacao(item: Omit<HistoricoItem, 'id' | 'timestamp'>): Promise<HistoricoItem> {
   console.log('🔵 Salvando simulação no Cloud...');
   
-  const deviceId = getDeviceId();
+  const userId = await getCurrentUserId();
+  
+  if (!userId) {
+    throw new Error('Usuário não autenticado');
+  }
   
   try {
     const { data, error } = await supabase
       .from('historico_simulacoes')
       .insert({
-        device_id: deviceId,
+        user_id: userId,
+        device_id: 'web', // Mantido para compatibilidade
         tipo: item.tipo,
         dados: item.dados as any,
         resultado: item.resultado as any,
@@ -67,13 +65,18 @@ export async function salvarSimulacao(item: Omit<HistoricoItem, 'id' | 'timestam
 export async function obterHistorico(): Promise<HistoricoItem[]> {
   console.log('🔵 Carregando histórico do Cloud...');
   
-  const deviceId = getDeviceId();
+  const userId = await getCurrentUserId();
+  
+  if (!userId) {
+    console.warn('⚠️ Usuário não autenticado');
+    return [];
+  }
   
   try {
     const { data, error } = await supabase
       .from('historico_simulacoes')
       .select('*')
-      .eq('device_id', deviceId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -123,13 +126,17 @@ export async function deletarItem(id: string): Promise<void> {
 export async function limparHistorico(): Promise<void> {
   console.log('🔵 Limpando histórico...');
   
-  const deviceId = getDeviceId();
+  const userId = await getCurrentUserId();
+  
+  if (!userId) {
+    throw new Error('Usuário não autenticado');
+  }
   
   try {
     const { error } = await supabase
       .from('historico_simulacoes')
       .delete()
-      .eq('device_id', deviceId);
+      .eq('user_id', userId);
 
     if (error) {
       console.error('❌ Erro ao limpar:', error);
