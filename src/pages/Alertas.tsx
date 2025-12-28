@@ -29,7 +29,7 @@ const Alertas = () => {
   const [dataAlerta, setDataAlerta] = useState('');
   const [horaAlerta, setHoraAlerta] = useState('09:00');
   const [identificacaoAnimal, setIdentificacaoAnimal] = useState('');
-  const [simulacaoSelecionada, setSimulacaoSelecionada] = useState<string>('');
+  const [simulacaoSelecionada, setSimulacaoSelecionada] = useState<string | undefined>(undefined);
   const [mensagem, setMensagem] = useState('');
   const [salvando, setSalvando] = useState(false);
 
@@ -115,7 +115,7 @@ const Alertas = () => {
       setDataAlerta('');
       setHoraAlerta('09:00');
       setIdentificacaoAnimal('');
-      setSimulacaoSelecionada('');
+      setSimulacaoSelecionada(undefined);
       setMensagem('');
       
       // Recarregar lista
@@ -275,16 +275,20 @@ const Alertas = () => {
                     <Select
                       value={simulacaoSelecionada}
                       onValueChange={(value) => {
-                        setSimulacaoSelecionada(value);
-                        if (value) {
-                          const sim = historico.find(h => h.id === value);
-                          if (sim) {
-                            setIdentificacaoAnimal(sim.identificacao || `${sim.dados.peso}kg - ${sim.dados.dias} dias`);
-                            setMensagem(`Reavaliar: ${sim.identificacao || 'animal'} - Lucro atual: R$ ${sim.resultado.lucroAtual.toFixed(2)}`);
-                          }
-                        } else {
+                        if (value === 'manual') {
+                          setSimulacaoSelecionada(undefined);
                           setIdentificacaoAnimal('');
                           setMensagem('');
+                          return;
+                        }
+
+                        setSimulacaoSelecionada(value);
+                        const sim = historico.find((h) => h.id === value);
+                        if (sim) {
+                          setIdentificacaoAnimal(sim.identificacao || `${sim.dados.peso}kg - ${sim.dados.dias} dias`);
+                          setMensagem(
+                            `Reavaliar: ${sim.identificacao || 'animal'} - Lucro atual: R$ ${sim.resultado.lucroAtual.toFixed(2)}`
+                          );
                         }
                       }}
                     >
@@ -292,7 +296,7 @@ const Alertas = () => {
                         <SelectValue placeholder="Escolher simulação salva..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma (inserir manualmente)</SelectItem>
+                        <SelectItem value="manual">Nenhuma (inserir manualmente)</SelectItem>
                         {historico.map((sim) => (
                           <SelectItem key={sim.id} value={sim.id}>
                             <div className="flex flex-col items-start">
@@ -322,7 +326,7 @@ const Alertas = () => {
                     value={identificacaoAnimal}
                     onChange={(e) => {
                       setIdentificacaoAnimal(e.target.value);
-                      setSimulacaoSelecionada(''); // Limpar seleção ao digitar
+                      setSimulacaoSelecionada(undefined); // Limpar seleção ao digitar
                     }}
                     className="input-field"
                   />
