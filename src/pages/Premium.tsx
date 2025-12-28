@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, MessageCircle, Save, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
-import { salvarSimulacao } from "@/lib/storage";
+import { salvarSimulacao, verificarPremium } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 const Premium = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Verificar acesso Premium
+  useEffect(() => {
+    if (!verificarPremium()) {
+      navigate('/premium-info');
+    }
+  }, [navigate]);
+
+  // Se não for premium, não renderiza nada
+  if (!verificarPremium()) {
+    return null;
+  }
   
   // Estados básicos
   const [peso, setPeso] = useState('');

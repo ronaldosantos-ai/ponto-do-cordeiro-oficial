@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Premium from "./pages/Premium";
+import PremiumInfo from "./pages/PremiumInfo";
 import Historico from "./pages/Historico";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -20,6 +21,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/premium" element={<Premium />} />
+          <Route path="/premium-info" element={<PremiumInfo />} />
           <Route path="/historico" element={<Historico />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />

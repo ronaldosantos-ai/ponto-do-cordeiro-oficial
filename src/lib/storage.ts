@@ -57,3 +57,17 @@ export function filtrarHistorico(dias: number | 'todos'): HistoricoItem[] {
     new Date(item.timestamp) >= dataLimite
   );
 }
+
+// Funções de verificação Premium
+export function verificarPremium(): boolean {
+  const premium = localStorage.getItem('ponto_cordeiro_premium');
+  return premium === 'ativo';
+}
+
+export function ativarPremium(): void {
+  localStorage.setItem('ponto_cordeiro_premium', 'ativo');
+}
+
+export function desativarPremium(): void {
+  localStorage.removeItem('ponto_cordeiro_premium');
+}
