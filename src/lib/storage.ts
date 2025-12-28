@@ -25,8 +25,15 @@ export function salvarSimulacao(item: Omit<HistoricoItem, 'id' | 'timestamp'>): 
 }
 
 export function obterHistorico(): HistoricoItem[] {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return [];
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Erro ao ler histórico:', error);
+    return [];
+  }
 }
 
 export function limparHistorico(): void {
