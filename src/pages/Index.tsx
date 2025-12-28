@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
 import { calcularDecisao, ResultData, SimulationData } from "@/lib/calculations";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
@@ -93,6 +95,25 @@ Gerado por Ponto do Cordeiro`;
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-md mx-auto space-y-6">
+        {/* Header com Login */}
+        <div className="flex justify-end">
+          {user ? (
+            <span className="text-sm text-muted-foreground">
+              ✅ {user.email?.split('@')[0]}
+            </span>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              Entrar
+            </Button>
+          )}
+        </div>
+
         {/* Título */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-foreground">Ponto do Cordeiro</h1>
