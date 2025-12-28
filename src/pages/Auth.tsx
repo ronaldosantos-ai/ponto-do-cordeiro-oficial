@@ -7,12 +7,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, Lock, ArrowLeft } from 'lucide-react';
 
+type AuthMode = 'login' | 'signup' | 'forgot';
+
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading, signIn, signUp } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, resetPassword } = useAuth();
   
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,6 +45,32 @@ const Auth = () => {
       return;
     }
 
+    // Modo recuperação de senha
+    if (mode === 'forgot') {
+      setLoading(true);
+      try {
+        const { error } = await resetPassword(email);
+        
+        if (error) {
+          toast({
+            title: "❌ Erro",
+            description: "Não foi possível enviar o email de recuperação",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        toast({ 
+          title: "✅ Email enviado!",
+          description: "Verifique sua caixa de entrada para redefinir a senha"
+        });
+        setMode('login');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (password.length < 6) {
       toast({
         title: "❌ Senha muito curta",
@@ -52,7 +80,7 @@ const Auth = () => {
       return;
     }
 
-    if (!isLogin && password !== confirmPassword) {
+    if (mode === 'signup' && password !== confirmPassword) {
       toast({
         title: "❌ Senhas não conferem",
         description: "As senhas digitadas são diferentes",
@@ -64,7 +92,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (mode === 'login') {
         const { error } = await signIn(email, password);
         
         if (error) {
@@ -119,6 +147,14 @@ const Auth = () => {
     }
   };
 
+  const getModeTitle = () => {
+    switch (mode) {
+      case 'login': return 'Entre na sua conta';
+      case 'signup': return 'Crie sua conta';
+      case 'forgot': return 'Recuperar senha';
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -147,9 +183,7 @@ const Auth = () => {
           <span className="text-4xl">🐑</span>
         </div>
         <h1 className="text-2xl font-bold text-foreground">Ponto do Cordeiro</h1>
-        <p className="text-muted-foreground mt-1">
-          {isLogin ? 'Entre na sua conta' : 'Crie sua conta'}
-        </p>
+        <p className="text-muted-foreground mt-1">{getModeTitle()}</p>
       </div>
 
       {/* Form */}
@@ -170,24 +204,26 @@ const Auth = () => {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Senha</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
-              required
-              minLength={6}
-            />
+        {mode !== 'forgot' && (
+          <div className="space-y-2">
+            <Label htmlFor="password">Senha</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10 h-12"
+                required
+                minLength={6}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        {!isLogin && (
+        {mode === 'signup' && (
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirmar Senha</Label>
             <div className="relative">
@@ -206,6 +242,18 @@ const Auth = () => {
           </div>
         )}
 
+        {mode === 'login' && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => setMode('forgot')}
+              className="text-sm text-primary hover:underline"
+            >
+              Esqueci minha senha
+            </button>
+          </div>
+        )}
+
         <Button
           type="submit"
           className="w-full h-12 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700"
@@ -213,28 +261,39 @@ const Auth = () => {
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            isLogin ? 'Entrar' : 'Criar Conta'
-          )}
+          ) : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Criar Conta' : 'Enviar email'}
         </Button>
       </form>
 
       {/* Toggle */}
       <div className="text-center mt-6">
-        <p className="text-muted-foreground">
-          {isLogin ? 'Não tem conta?' : 'Já tem conta?'}
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setPassword('');
-              setConfirmPassword('');
-            }}
-            className="text-primary font-semibold ml-1 hover:underline"
-          >
-            {isLogin ? 'Criar conta' : 'Fazer login'}
-          </button>
-        </p>
+        {mode === 'forgot' ? (
+          <p className="text-muted-foreground">
+            Lembrou a senha?
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className="text-primary font-semibold ml-1 hover:underline"
+            >
+              Fazer login
+            </button>
+          </p>
+        ) : (
+          <p className="text-muted-foreground">
+            {mode === 'login' ? 'Não tem conta?' : 'Já tem conta?'}
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'login' ? 'signup' : 'login');
+                setPassword('');
+                setConfirmPassword('');
+              }}
+              className="text-primary font-semibold ml-1 hover:underline"
+            >
+              {mode === 'login' ? 'Criar conta' : 'Fazer login'}
+            </button>
+          </p>
+        )}
       </div>
 
       {/* Info */}
