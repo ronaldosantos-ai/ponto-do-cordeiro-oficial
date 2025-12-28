@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, History, Bell, Settings } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, History, Bell, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao, verificarPremium } from "@/lib/storage";
@@ -239,6 +239,18 @@ Gerado por Ponto do Cordeiro Premium`;
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
             ⭐ Premium
           </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => {
+              await signOut();
+              navigate('/');
+            }}
+            className="h-9 w-9 text-muted-foreground hover:text-destructive"
+            title="Sair"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
         </div>
       </header>
 
