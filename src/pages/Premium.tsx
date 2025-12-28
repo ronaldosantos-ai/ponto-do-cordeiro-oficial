@@ -38,6 +38,7 @@ const Premium = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
+  const [erroDetalhes, setErroDetalhes] = useState('');
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -84,26 +85,47 @@ const Premium = () => {
   };
 
   const handleSalvar = async () => {
-    if (!resultado || !dadosSimulacao) return;
+    console.log('🟢 Botão Salvar clicado');
+    
+    if (!resultado || !dadosSimulacao) {
+      toast({
+        title: "⚠️ Faça uma simulação primeiro",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setSalvando(true);
-      await salvarSimulacao({
-        tipo: 'premium',
+      setErroDetalhes('');
+      
+      console.log('🟢 Preparando dados...');
+      const itemParaSalvar = {
+        tipo: 'premium' as const,
         dados: dadosSimulacao,
         resultado: resultado,
         identificacao: identificacao || undefined
-      });
+      };
+      
+      console.log('🟢 Chamando salvarSimulacao...');
+      const itemSalvo = await salvarSimulacao(itemParaSalvar);
+      
+      console.log('🟢 Item salvo:', itemSalvo);
       
       setSalvo(true);
       toast({
         title: "✅ Simulação salva",
-        description: "Acesse o histórico para ver todas as simulações"
+        description: "Acesse o histórico para visualizar"
       });
+      
     } catch (error) {
+      console.error('🔴 ERRO COMPLETO:', error);
+      const mensagemErro = error instanceof Error ? error.message : 'Erro desconhecido';
+      setErroDetalhes(mensagemErro);
+      
       toast({
         title: "❌ Erro ao salvar",
-        description: "Tente novamente",
+        description: mensagemErro,
         variant: "destructive"
       });
     } finally {
@@ -403,6 +425,12 @@ Gerado por Ponto do Cordeiro Premium`;
               </>
             )}
           </Button>
+
+          {erroDetalhes && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              Erro: {erroDetalhes}
+            </div>
+          )}
 
           <Button
             variant="outline"
