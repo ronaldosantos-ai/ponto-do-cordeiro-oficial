@@ -94,7 +94,7 @@ Gerado por Ponto do Cordeiro`;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-8">
-      <div className="w-full max-w-md mx-auto space-y-6">
+      <div className="w-full max-w-md md:max-w-xs mx-auto space-y-6">
         {/* Header com Login */}
         <div className="flex justify-end">
           {!user && (
