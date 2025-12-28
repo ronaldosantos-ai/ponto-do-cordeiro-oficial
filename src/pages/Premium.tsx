@@ -67,7 +67,7 @@ const Premium = () => {
     setResultado(null);
     setDadosSimulacao(null);
     setSalvo(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const handleSalvar = () => {
