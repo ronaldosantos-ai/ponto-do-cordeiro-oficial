@@ -9,9 +9,10 @@ const Index = () => {
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
+  const [precoVenda, setPrecoVenda] = useState("");
   const [resultado, setResultado] = useState<ResultData | null>(null);
 
-  const isFormValid = peso !== "" && dias !== "" && custo !== "";
+  const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
 
   const handleCalcular = () => {
     if (!isFormValid) return;
@@ -20,6 +21,7 @@ const Index = () => {
       peso: parseFloat(peso),
       dias: parseInt(dias),
       custo: parseFloat(custo),
+      precoVenda: parseFloat(precoVenda),
     });
     setResultado(result);
   };
@@ -28,6 +30,7 @@ const Index = () => {
     setPeso("");
     setDias("");
     setCusto("");
+    setPrecoVenda("");
     setResultado(null);
   };
 
@@ -106,6 +109,24 @@ const Index = () => {
             />
           </div>
 
+          {/* Preço de venda */}
+          <div className="space-y-2">
+            <Label htmlFor="precoVenda" className="text-foreground">
+              Preço de venda (R$/kg)
+            </Label>
+            <Input
+              id="precoVenda"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Ex: 18.50"
+              inputMode="decimal"
+              className="h-14 text-lg border-2"
+              value={precoVenda}
+              onChange={(e) => handleInputChange(setPrecoVenda, e.target.value)}
+            />
+          </div>
+
           {/* Botão Calcular */}
           <Button
             variant="default"
@@ -141,16 +162,30 @@ const Index = () => {
                 }`}
               >
                 {resultado.decisao === "vender"
-                  ? "Vale a pena vender hoje"
-                  : "Melhor segurar"}
+                  ? "💰 Vale a pena vender"
+                  : "⏳ Melhor segurar e engordar mais"}
               </p>
 
-              <div className="text-muted-foreground mt-4 space-y-2 w-full text-left">
+              {/* Lucro em destaque */}
+              <p
+                className={`text-2xl font-bold mt-4 ${
+                  resultado.lucroAtual >= 0 ? "text-positive" : "text-destructive"
+                }`}
+              >
+                Lucro hoje: R$ {resultado.lucroAtual.toFixed(2)}
+              </p>
+
+              {/* Informações secundárias */}
+              <div className="text-base text-muted-foreground mt-4 space-y-2 w-full text-left">
+                <p>Receita: R$ {resultado.receitaAtual.toFixed(2)}</p>
                 <p>Custo total: R$ {resultado.custoTotal.toFixed(2)}</p>
-                <p>Custo por kg: R$ {resultado.custoKg.toFixed(2)}</p>
-                <p>Peso: {peso} kg</p>
-                <p>
-                  Data:{" "}
+                <p>Custo/kg: R$ {resultado.custoKg.toFixed(2)}</p>
+                <p>Peso atual: {peso} kg</p>
+                
+                <hr className="my-3 border-border" />
+                
+                <p className="text-sm">
+                  Simulado em:{" "}
                   {new Date(resultado.timestamp).toLocaleString("pt-BR")}
                 </p>
               </div>
