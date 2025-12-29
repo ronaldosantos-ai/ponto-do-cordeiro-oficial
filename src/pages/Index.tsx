@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
-import { calcularDecisao, ResultData, SimulationData } from "@/lib/calculations";
+import { calcularDecisao, ResultData } from "@/lib/calculations";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { gerarTextoCompartilhamento, compartilharWhatsApp } from "@/lib/share";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -63,43 +64,22 @@ const Index = () => {
     setIsCalculating(false);
   };
 
-  const compartilharWhatsApp = () => {
+  const handleCompartilharWhatsApp = () => {
     if (!resultado) return;
     
-    const dados: SimulationData = {
-      peso: parseFloat(peso),
-      dias: parseInt(dias),
-      custo: parseFloat(custo),
-      precoVenda: parseFloat(precoVenda),
-    };
+    const mensagem = gerarTextoCompartilhamento('simulacao', {
+      dados: {
+        peso: parseFloat(peso),
+        dias: parseInt(dias),
+        custo: parseFloat(custo),
+        precoVenda: parseFloat(precoVenda),
+      },
+      resultado,
+      identificacao: undefined
+    });
     
-    const emoji = resultado.decisao === 'vender' ? '💰' : '⏳';
-    const decisaoTexto = resultado.decisao === 'vender' 
-      ? 'Vale a pena vender hoje' 
-      : 'Melhor segurar e engordar mais';
-    
-    const mensagem = `${emoji} *Ponto do Cordeiro*
-
-*Decisão: ${decisaoTexto}*
-
-📊 Simulação:
-• Peso: ${dados.peso} kg
-• Dias em cativeiro: ${dados.dias}
-• Custo diário: R$ ${dados.custo.toFixed(2)}
-• Preço venda: R$ ${dados.precoVenda.toFixed(2)}/kg
-
-💵 Resultado:
-• Receita: R$ ${resultado.receitaAtual.toFixed(2)}
-• Custo total: R$ ${resultado.custoTotal.toFixed(2)}
-• Lucro: R$ ${resultado.lucroAtual.toFixed(2)}
-
-🕐 ${new Date(resultado.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
-
----
-Gerado por Ponto do Cordeiro`;
-
-    const url = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
+    compartilharWhatsApp(mensagem);
+    toast({ title: "✅ Abrindo WhatsApp..." });
   };
 
   const handleNovaSimulacao = () => {
@@ -297,7 +277,7 @@ Gerado por Ponto do Cordeiro`;
               <Button
                 variant="outline"
                 className="mt-6 w-full h-14 border-2 border-positive text-positive hover:bg-green-50"
-                onClick={compartilharWhatsApp}
+                onClick={handleCompartilharWhatsApp}
                 aria-label="Enviar resultado para WhatsApp"
               >
                 <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
@@ -327,6 +307,8 @@ Gerado por Ponto do Cordeiro`;
                     <li>• Salvar simulações com identificação</li>
                     <li>• Histórico completo com filtros</li>
                     <li>• Alertas e lembretes</li>
+                    <li>• Gráficos de evolução</li>
+                    <li>• Compartilhar via Telegram, Email e mais</li>
                   </ul>
                   <p className="text-xs text-muted-foreground mt-3">
                     💡 Ajuda você a decidir o melhor momento de venda
