@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3, FileDown } from "lucide-react";
+import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3, FileDown, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { EmptyState } from "@/components/EmptyState";
 import { FileQuestion } from "lucide-react";
 import { gerarPDFHistorico } from "@/lib/pdf";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
 
@@ -49,12 +59,16 @@ const Historico = () => {
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
   const [exportando, setExportando] = useState(false);
+  const [dialogExportarAberto, setDialogExportarAberto] = useState(false);
+  const [opcaoExportar, setOpcaoExportar] = useState<'filtrado' | '7dias' | '30dias' | 'todos'>('filtrado');
+  const [todosRegistros, setTodosRegistros] = useState<HistoricoItem[]>([]);
 
   const carregarHistorico = async (mostrarToast = false) => {
     if (!user) return;
     
     try {
       const todos = await obterHistorico();
+      setTodosRegistros(todos);
       
       let filtrados = todos;
       
@@ -200,6 +214,87 @@ const Historico = () => {
     setDataSelecionada(undefined);
   };
 
+  // Calcular contadores para cada opção de exportação
+  const contadores = useMemo(() => {
+    const agora = new Date();
+    const seteDiasAtras = new Date(agora);
+    seteDiasAtras.setDate(agora.getDate() - 7);
+    const trintaDiasAtras = new Date(agora);
+    trintaDiasAtras.setDate(agora.getDate() - 30);
+
+    return {
+      filtrado: historico.length,
+      seteDias: todosRegistros.filter(item => new Date(item.timestamp) >= seteDiasAtras).length,
+      trintaDias: todosRegistros.filter(item => new Date(item.timestamp) >= trintaDiasAtras).length,
+      todos: todosRegistros.length,
+    };
+  }, [historico, todosRegistros]);
+
+  // Gerar CSV do histórico
+  const gerarCSV = (items: HistoricoItem[]) => {
+    const headers = ['Data', 'Identificação', 'Peso (kg)', 'Dias', 'Lucro Atual (R$)', 'Lucro Futuro (R$)', 'Decisão', 'Tipo'];
+    const rows = items.map(item => [
+      new Date(item.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      item.identificacao || '',
+      item.dados.peso.toString(),
+      item.dados.dias.toString(),
+      item.resultado.lucroAtual.toFixed(2),
+      item.resultado.lucroFuturo?.toFixed(2) || '',
+      item.resultado.decisao === 'vender' ? 'Vender' : 'Segurar',
+      item.tipo === 'premium' ? 'Premium' : 'MVP'
+    ]);
+    
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `historico-simulacoes-${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportarCSV = () => {
+    const agora = new Date();
+    let itemsParaExportar: HistoricoItem[] = [];
+
+    switch (opcaoExportar) {
+      case 'filtrado':
+        itemsParaExportar = historico;
+        break;
+      case '7dias':
+        const seteDiasAtras = new Date(agora);
+        seteDiasAtras.setDate(agora.getDate() - 7);
+        itemsParaExportar = todosRegistros.filter(item => new Date(item.timestamp) >= seteDiasAtras);
+        break;
+      case '30dias':
+        const trintaDiasAtras = new Date(agora);
+        trintaDiasAtras.setDate(agora.getDate() - 30);
+        itemsParaExportar = todosRegistros.filter(item => new Date(item.timestamp) >= trintaDiasAtras);
+        break;
+      case 'todos':
+        itemsParaExportar = todosRegistros;
+        break;
+    }
+
+    if (itemsParaExportar.length === 0) {
+      toast({ title: "⚠️ Nenhum registro para exportar", variant: "destructive" });
+      return;
+    }
+
+    gerarCSV(itemsParaExportar);
+    setDialogExportarAberto(false);
+    toast({ 
+      title: "✅ CSV exportado", 
+      description: `${itemsParaExportar.length} registro(s) exportado(s)` 
+    });
+  };
+
   // Calcular resumo
   const lucroTotal = historico.reduce((acc, item) => {
     return acc + (item.resultado.lucroAtual || 0);
@@ -223,12 +318,22 @@ const Historico = () => {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setDialogExportarAberto(true)}
+            disabled={todosRegistros.length === 0}
+            className="h-10"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={async () => {
               if (historico.length === 0) return;
               setExportando(true);
               try {
                 gerarPDFHistorico(historico);
-                toast({ title: "✅ Histórico exportado" });
+                toast({ title: "✅ PDF exportado" });
               } finally {
                 setExportando(false);
               }
@@ -241,7 +346,7 @@ const Historico = () => {
             ) : (
               <>
                 <FileDown className="w-4 h-4 mr-2" />
-                Exportar
+                PDF
               </>
             )}
           </Button>
@@ -499,6 +604,81 @@ const Historico = () => {
           </AlertDialog>
         </div>
       )}
+
+      {/* Dialog de Exportar CSV */}
+      <Dialog open={dialogExportarAberto} onOpenChange={setDialogExportarAberto}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              Exportar para Planilha
+            </DialogTitle>
+            <DialogDescription>
+              Escolha quais registros deseja exportar
+            </DialogDescription>
+          </DialogHeader>
+          
+          <RadioGroup 
+            value={opcaoExportar} 
+            onValueChange={(value) => setOpcaoExportar(value as typeof opcaoExportar)}
+            className="space-y-3 py-4"
+          >
+            <div className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors">
+              <RadioGroupItem value="filtrado" id="filtrado" />
+              <Label htmlFor="filtrado" className="flex-1 cursor-pointer">
+                <span className="font-medium">Período atual filtrado</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({contadores.filtrado} registro{contadores.filtrado !== 1 ? 's' : ''})
+                </span>
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors">
+              <RadioGroupItem value="7dias" id="7dias" />
+              <Label htmlFor="7dias" className="flex-1 cursor-pointer">
+                <span className="font-medium">Últimos 7 dias</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({contadores.seteDias} registro{contadores.seteDias !== 1 ? 's' : ''})
+                </span>
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors">
+              <RadioGroupItem value="30dias" id="30dias" />
+              <Label htmlFor="30dias" className="flex-1 cursor-pointer">
+                <span className="font-medium">Últimos 30 dias</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({contadores.trintaDias} registro{contadores.trintaDias !== 1 ? 's' : ''})
+                </span>
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors">
+              <RadioGroupItem value="todos" id="todos" />
+              <Label htmlFor="todos" className="flex-1 cursor-pointer">
+                <span className="font-medium">Todas as simulações</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({contadores.todos} registro{contadores.todos !== 1 ? 's' : ''})
+                </span>
+              </Label>
+            </div>
+          </RadioGroup>
+
+          <div className="text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg">
+            💡 <strong>Dica:</strong> Para adicionar dados a uma planilha existente, exporte apenas os registros novos (ex: "Últimos 7 dias") e cole abaixo dos dados anteriores.
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDialogExportarAberto(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleExportarCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Baixar CSV
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
