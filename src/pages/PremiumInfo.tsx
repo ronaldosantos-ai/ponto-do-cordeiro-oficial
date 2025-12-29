@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Crown, TrendingUp, History, Bell, Filter, Check, X } from "lucide-react";
+import { ArrowLeft, Crown, TrendingUp, History, Bell, Filter, Check, X, BarChart3, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ativarPremium } from "@/lib/storage";
 
@@ -23,19 +23,33 @@ const PremiumInfo = () => {
       descricao: "Receba lembretes para reavaliar a venda no momento certo"
     },
     {
+      icon: BarChart3,
+      titulo: "Gráficos de Evolução",
+      descricao: "Visualize a evolução do lucro e peso ao longo do tempo"
+    },
+    {
       icon: Filter,
       titulo: "Relatórios e Filtros",
       descricao: "Filtre por período, animal, e veja lucro total acumulado"
+    },
+    {
+      icon: Share2,
+      titulo: "Compartilhamento Completo",
+      descricao: "Envie resultados via Telegram, Email e mais opções além do WhatsApp"
     }
   ];
 
   const comparacao = [
     { recurso: "Simulação básica", gratuito: true, premium: true },
     { recurso: "Enviar para WhatsApp", gratuito: true, premium: true },
-    { recurso: "Projeção de ganho", gratuito: false, premium: true },
-    { recurso: "Histórico de simulações", gratuito: false, premium: true },
-    { recurso: "Alertas", gratuito: false, premium: true },
-    { recurso: "Relatórios", gratuito: false, premium: true },
+    { recurso: "Projeção de ganho futuro", gratuito: false, premium: true },
+    { recurso: "Comparar lucro hoje vs futuro", gratuito: false, premium: true },
+    { recurso: "Salvar com identificação", gratuito: false, premium: true },
+    { recurso: "Histórico completo com filtros", gratuito: false, premium: true },
+    { recurso: "Alertas e lembretes", gratuito: false, premium: true },
+    { recurso: "Gráficos de evolução", gratuito: false, premium: true },
+    { recurso: "Compartilhar via Telegram/Email", gratuito: false, premium: true },
+    { recurso: "Exportar relatórios PDF/CSV", gratuito: false, premium: true },
   ];
 
   const handleAssinar = () => {
