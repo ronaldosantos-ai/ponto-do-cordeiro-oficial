@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, BarChart3, FileJson } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { obterHistorico, limparHistorico, verificarPremium, desativarPremium } from "@/lib/storage";
 import { obterAlertas, deletarAlerta } from "@/lib/alertas";
+import { gerarPDFHistorico, gerarPDFAnalises } from "@/lib/pdf";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SettingsItemProps {
   icone: React.ReactNode;
@@ -361,24 +369,68 @@ const Settings = () => {
               </Button>
               
               {isPremium && (
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12"
-                  onClick={exportarDados}
-                  disabled={exportando}
-                >
-                  {exportando ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                      Exportando...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-                      Exportar dados
-                    </>
-                  )}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-12"
+                      disabled={exportando}
+                    >
+                      {exportando ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                          Exportando...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                          Exportar dados
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuItem onClick={async () => {
+                      setExportando(true);
+                      try {
+                        const historico = await obterHistorico();
+                        if (historico.length > 0) {
+                          gerarPDFHistorico(historico);
+                          toast({ title: "✅ Histórico exportado em PDF" });
+                        } else {
+                          toast({ title: "⚠️ Nenhum dado para exportar" });
+                        }
+                      } finally {
+                        setExportando(false);
+                      }
+                    }}>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Histórico em PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={async () => {
+                      setExportando(true);
+                      try {
+                        const historico = await obterHistorico();
+                        if (historico.length > 0) {
+                          gerarPDFAnalises(historico, 'Todos os períodos');
+                          toast({ title: "✅ Análises exportadas em PDF" });
+                        } else {
+                          toast({ title: "⚠️ Nenhum dado para exportar" });
+                        }
+                      } finally {
+                        setExportando(false);
+                      }
+                    }}>
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Análises em PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={exportarDados}>
+                      <FileJson className="w-4 h-4 mr-2" />
+                      Backup JSON (técnico)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               
               <AlertDialog>

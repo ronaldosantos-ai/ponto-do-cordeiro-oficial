@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3 } from "lucide-react";
+import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { EmptyState } from "@/components/EmptyState";
 import { FileQuestion } from "lucide-react";
+import { gerarPDFHistorico } from "@/lib/pdf";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
 
@@ -47,6 +48,7 @@ const Historico = () => {
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
+  const [exportando, setExportando] = useState(false);
 
   const carregarHistorico = async (mostrarToast = false) => {
     if (!user) return;
@@ -218,6 +220,31 @@ const Historico = () => {
           Voltar
         </Button>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (historico.length === 0) return;
+              setExportando(true);
+              try {
+                gerarPDFHistorico(historico);
+                toast({ title: "✅ Histórico exportado" });
+              } finally {
+                setExportando(false);
+              }
+            }}
+            disabled={historico.length === 0 || exportando}
+            className="h-10"
+          >
+            {exportando ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <FileDown className="w-4 h-4 mr-2" />
+                PDF
+              </>
+            )}
+          </Button>
           <Button
             variant="outline"
             size="sm"

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, Bell, LogOut } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, Bell, LogOut, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao, verificarPremium } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import { gerarPDFSimulacao } from "@/lib/pdf";
 import { useAuth } from "@/hooks/useAuth";
 
 const Premium = () => {
@@ -503,6 +504,20 @@ Gerado por Ponto do Cordeiro Premium`;
               Erro: {erroDetalhes}
             </div>
           )}
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (dadosSimulacao && resultado) {
+                gerarPDFSimulacao(dadosSimulacao, resultado, identificacao || undefined);
+                toast({ title: "✅ Relatório gerado", description: "Arquivo baixado com sucesso" });
+              }
+            }}
+            className="w-full h-14"
+          >
+            <FileDown className="w-5 h-5 mr-2" aria-hidden="true" />
+            Baixar relatório
+          </Button>
 
           <Button
             variant="outline"
