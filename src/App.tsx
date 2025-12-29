@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
 import Historico from "./pages/Historico";
+import Graficos from "./pages/Graficos";
 import Alertas from "./pages/Alertas";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/premium" element={<Premium />} />
             <Route path="/premium-info" element={<PremiumInfo />} />
             <Route path="/historico" element={<Historico />} />
+            <Route path="/graficos" element={<Graficos />} />
             <Route path="/alertas" element={<Alertas />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />

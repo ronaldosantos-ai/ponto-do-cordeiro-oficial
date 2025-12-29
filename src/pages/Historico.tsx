@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon } from "lucide-react";
+import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -218,6 +218,15 @@ const Historico = () => {
           Voltar
         </Button>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/graficos')}
+            className="h-10"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Gráficos
+          </Button>
           <Button
             variant="ghost"
             size="icon"
