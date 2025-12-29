@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { obterHistorico, HistoricoItem } from "@/lib/storage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function baixarCSV(historico: HistoricoItem[]) {
   // Cabeçalhos do CSV
@@ -68,8 +78,10 @@ const GoogleSheets = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [carregando, setCarregando] = useState(false);
+  const [dialogAberto, setDialogAberto] = useState(false);
+  const [numSimulacoes, setNumSimulacoes] = useState(0);
 
-  async function handleExportarCSV() {
+  async function verificarDadosParaExportar() {
     try {
       const historico = await obterHistorico();
 
@@ -82,7 +94,27 @@ const GoogleSheets = () => {
         return;
       }
 
+      setNumSimulacoes(historico.length);
+      setDialogAberto(true);
+    } catch (error) {
+      toast({
+        title: "❌ Erro ao verificar dados",
+        description: "Tente novamente",
+        variant: "destructive"
+      });
+    }
+  }
+
+  async function handleExportarCSV() {
+    try {
+      const historico = await obterHistorico();
+
+      if (historico.length === 0) {
+        return;
+      }
+
       setCarregando(true);
+      setDialogAberto(false);
       baixarCSV(historico);
 
       toast({
@@ -191,7 +223,7 @@ const GoogleSheets = () => {
             {/* Botão de Download */}
             <div className="space-y-3 pt-2">
               <Button
-                onClick={handleExportarCSV}
+                onClick={verificarDadosParaExportar}
                 className="w-full h-12 bg-green-600 hover:bg-green-700 text-base"
                 disabled={carregando}
               >
@@ -290,6 +322,32 @@ const GoogleSheets = () => {
 
       {/* Espaço para BottomNav */}
       <div className="h-24" />
+
+      {/* Dialog de Confirmação */}
+      <AlertDialog open={dialogAberto} onOpenChange={setDialogAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              Baixar CSV?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Serão exportadas <strong>{numSimulacoes}</strong> simulação(ões) para um arquivo CSV 
+              compatível com Google Sheets.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExportarCSV}
+              className="h-12 bg-green-600 hover:bg-green-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Baixar CSV
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

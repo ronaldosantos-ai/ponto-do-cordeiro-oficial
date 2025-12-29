@@ -92,6 +92,7 @@ const Settings = () => {
   const [espacoUsado, setEspacoUsado] = useState('0 KB');
   const [limpando, setLimpando] = useState(false);
   const [exportando, setExportando] = useState(false);
+  const [dialogRelatorioAberto, setDialogRelatorioAberto] = useState(false);
 
   useEffect(() => {
     // Carregar configurações
@@ -377,20 +378,7 @@ const Settings = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 bg-background">
-                        <DropdownMenuItem onClick={async () => {
-                          setExportando(true);
-                          try {
-                            const historico = await obterHistorico();
-                            if (historico.length > 0) {
-                              gerarPDFHistorico(historico);
-                              toast({ title: "✅ Relatório TXT exportado" });
-                            } else {
-                              toast({ title: "⚠️ Nenhum dado para exportar" });
-                            }
-                          } finally {
-                            setExportando(false);
-                          }
-                        }}>
+                        <DropdownMenuItem onClick={() => setDialogRelatorioAberto(true)}>
                           <FileText className="w-4 h-4 mr-2" />
                           Relatório em TXT
                         </DropdownMenuItem>
@@ -561,6 +549,46 @@ const Settings = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog de Confirmação Relatório TXT */}
+      <AlertDialog open={dialogRelatorioAberto} onOpenChange={setDialogRelatorioAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Exportar relatório TXT?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Será gerado um relatório em texto com <strong>{numSimulacoes}</strong> simulação(ões) 
+              salvas no histórico.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setExportando(true);
+                setDialogRelatorioAberto(false);
+                try {
+                  const historico = await obterHistorico();
+                  if (historico.length > 0) {
+                    gerarPDFHistorico(historico);
+                    toast({ title: "✅ Relatório TXT exportado" });
+                  } else {
+                    toast({ title: "⚠️ Nenhum dado para exportar" });
+                  }
+                } finally {
+                  setExportando(false);
+                }
+              }}
+              className="h-12"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Baixar TXT
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -30,6 +30,16 @@ import { HistoricoItem, obterHistorico, verificarPremium } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { gerarPDFAnalises } from "@/lib/pdf";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type FiltroPeriodo = 7 | 30 | 90 | 'todos';
 
@@ -142,6 +152,7 @@ const Graficos = () => {
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [exportando, setExportando] = useState(false);
+  const [dialogExportarAberto, setDialogExportarAberto] = useState(false);
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
@@ -210,17 +221,7 @@ const Graficos = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={async () => {
-              if (historico.length === 0) return;
-              setExportando(true);
-              try {
-                const periodoLabel = periodo === 'todos' ? 'Todos os períodos' : `Últimos ${periodo} dias`;
-                gerarPDFAnalises(historico, periodoLabel);
-                toast({ title: "✅ Análises exportadas" });
-              } finally {
-                setExportando(false);
-              }
-            }}
+            onClick={() => setDialogExportarAberto(true)}
             disabled={historico.length === 0 || exportando}
             className="h-10"
           >
@@ -492,6 +493,42 @@ const Graficos = () => {
           )}
         </div>
       )}
+
+      {/* Dialog de Confirmação de Exportação */}
+      <AlertDialog open={dialogExportarAberto} onOpenChange={setDialogExportarAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <FileDown className="w-5 h-5" />
+              Exportar análises?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Será gerado um relatório com as análises de <strong>{historico.length}</strong> simulação(ões) 
+              do período selecionado ({periodo === 'todos' ? 'Todos os períodos' : `Últimos ${periodo} dias`}).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setExportando(true);
+                setDialogExportarAberto(false);
+                try {
+                  const periodoLabel = periodo === 'todos' ? 'Todos os períodos' : `Últimos ${periodo} dias`;
+                  gerarPDFAnalises(historico, periodoLabel);
+                  toast({ title: "✅ Análises exportadas" });
+                } finally {
+                  setExportando(false);
+                }
+              }}
+              className="h-12"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Exportar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
