@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, ExternalLink, HelpCircle, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, HelpCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -286,36 +286,6 @@ const GoogleSheets = () => {
           </CardContent>
         </Card>
 
-        {/* Aviso Sincronização Automática */}
-        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-          <div className="flex gap-3">
-            <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-1">
-                🚀 Sincronização automática em breve
-              </p>
-              <p className="text-xs text-amber-800 dark:text-amber-200">
-                Estamos trabalhando para que suas simulações sejam enviadas
-                automaticamente para o Google Sheets, sem precisar exportar.
-                Enquanto isso, o CSV funciona perfeitamente!
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Seção Em Desenvolvimento */}
-        <div className="pt-4 border-t border-border opacity-50">
-          <h4 className="font-medium text-muted-foreground mb-2 flex items-center gap-2">
-            🔒 Sincronização Automática
-            <span className="text-xs bg-secondary text-muted-foreground px-2 py-1 rounded-full font-normal">
-              Em desenvolvimento
-            </span>
-          </h4>
-          <p className="text-sm text-muted-foreground">
-            Em breve você poderá conectar sua conta Google e suas simulações
-            serão enviadas automaticamente para a planilha, sem precisar exportar manualmente.
-          </p>
-        </div>
       </div>
 
       {/* Espaço para BottomNav */}
