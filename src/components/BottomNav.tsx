@@ -1,10 +1,11 @@
-import { Home, History, Bell, Settings } from 'lucide-react';
+import { Home, History, Bell, Settings, BarChart3 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { verificarPremium } from '@/lib/storage';
 
 const items = [
   { path: '/premium', icon: Home, label: 'Início' },
   { path: '/historico', icon: History, label: 'Histórico' },
+  { path: '/graficos', icon: BarChart3, label: 'Gráficos' },
   { path: '/alertas', icon: Bell, label: 'Alertas' },
   { path: '/settings', icon: Settings, label: 'Config' }
 ];
