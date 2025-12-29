@@ -209,7 +209,7 @@ const Graficos = () => {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={async () => {
               if (historico.length === 0) return;
               setExportando(true);
@@ -222,12 +222,15 @@ const Graficos = () => {
               }
             }}
             disabled={historico.length === 0 || exportando}
-            className="h-10 w-10"
+            className="h-10"
           >
             {exportando ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <FileDown className="w-4 h-4" />
+              <>
+                <FileDown className="w-4 h-4 mr-2" />
+                Exportar
+              </>
             )}
           </Button>
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
