@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { AlertasNotifier } from "./components/AlertasNotifier";
 import { BottomNav } from "./components/BottomNav";
+import { AdminRoute } from "./components/AdminRoute";
 import Index from "./pages/Index";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
@@ -16,6 +17,15 @@ import Settings from "./pages/Settings";
 import GoogleSheets from "./pages/GoogleSheets";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSimulations from "./pages/admin/AdminSimulations";
+import AdminAlerts from "./pages/admin/AdminAlerts";
+import AdminExports from "./pages/admin/AdminExports";
+import AdminBilling from "./pages/admin/AdminBilling";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminLogs from "./pages/admin/AdminLogs";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +47,15 @@ const App = () => (
             <Route path="/alertas" element={<Alertas />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/google-sheets" element={<GoogleSheets />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/simulations" element={<AdminRoute><AdminSimulations /></AdminRoute>} />
+            <Route path="/admin/alerts" element={<AdminRoute><AdminAlerts /></AdminRoute>} />
+            <Route path="/admin/exports" element={<AdminRoute><AdminExports /></AdminRoute>} />
+            <Route path="/admin/billing" element={<AdminRoute><AdminBilling /></AdminRoute>} />
+            <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+            <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
