@@ -13,6 +13,7 @@ import Historico from "./pages/Historico";
 import Graficos from "./pages/Graficos";
 import Alertas from "./pages/Alertas";
 import Settings from "./pages/Settings";
+import GoogleSheets from "./pages/GoogleSheets";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/graficos" element={<Graficos />} />
             <Route path="/alertas" element={<Alertas />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/google-sheets" element={<GoogleSheets />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
