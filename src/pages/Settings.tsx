@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, BarChart3, FileJson } from "lucide-react";
+import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -359,6 +358,88 @@ const Settings = () => {
               titulo="Espaço utilizado"
               descricao={`Aproximadamente ${espacoUsado} em uso local`}
             />
+            
+            {isPremium && (
+              <>
+                <SettingsItem
+                  icone={<FileText className="w-5 h-5" />}
+                  titulo="Exportar relatórios"
+                  descricao="Baixe seus dados em formato legível"
+                  acao={
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" disabled={exportando}>
+                          {exportando ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 bg-background">
+                        <DropdownMenuItem onClick={async () => {
+                          setExportando(true);
+                          try {
+                            const historico = await obterHistorico();
+                            if (historico.length > 0) {
+                              gerarPDFHistorico(historico);
+                              toast({ title: "✅ Histórico exportado" });
+                            } else {
+                              toast({ title: "⚠️ Nenhum dado para exportar" });
+                            }
+                          } finally {
+                            setExportando(false);
+                          }
+                        }}>
+                          <Database className="w-4 h-4 mr-2" />
+                          Histórico completo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => {
+                          setExportando(true);
+                          try {
+                            const historico = await obterHistorico();
+                            if (historico.length > 0) {
+                              gerarPDFAnalises(historico, 'Todos');
+                              toast({ title: "✅ Análises exportadas" });
+                            } else {
+                              toast({ title: "⚠️ Nenhum dado para exportar" });
+                            }
+                          } finally {
+                            setExportando(false);
+                          }
+                        }}>
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          Análises e insights
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  }
+                />
+                <SettingsItem
+                  icone={<Database className="w-5 h-5" />}
+                  titulo="Backup técnico (JSON)"
+                  descricao="Arquivo técnico para migração ou recuperação de dados"
+                  acao={
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={exportarDados}
+                      disabled={exportando}
+                    >
+                      {exportando ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                    </Button>
+                  }
+                />
+                <p className="text-xs text-muted-foreground mt-1 px-4 pb-2">
+                  💡 Use o backup JSON apenas se for migrar dados entre dispositivos ou sistemas
+                </p>
+              </>
+            )}
+            
             <div className="p-4 space-y-3 border-t border-border">
               <Button 
                 variant="outline" 
@@ -367,71 +448,6 @@ const Settings = () => {
               >
                 Limpar cache
               </Button>
-              
-              {isPremium && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-12"
-                      disabled={exportando}
-                    >
-                      {exportando ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                          Exportando...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-                          Exportar dados
-                        </>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuItem onClick={async () => {
-                      setExportando(true);
-                      try {
-                        const historico = await obterHistorico();
-                        if (historico.length > 0) {
-                          gerarPDFHistorico(historico);
-                          toast({ title: "✅ Histórico exportado em PDF" });
-                        } else {
-                          toast({ title: "⚠️ Nenhum dado para exportar" });
-                        }
-                      } finally {
-                        setExportando(false);
-                      }
-                    }}>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Histórico em PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => {
-                      setExportando(true);
-                      try {
-                        const historico = await obterHistorico();
-                        if (historico.length > 0) {
-                          gerarPDFAnalises(historico, 'Todos os períodos');
-                          toast({ title: "✅ Análises exportadas em PDF" });
-                        } else {
-                          toast({ title: "⚠️ Nenhum dado para exportar" });
-                        }
-                      } finally {
-                        setExportando(false);
-                      }
-                    }}>
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Análises em PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={exportarDados}>
-                      <FileJson className="w-4 h-4 mr-2" />
-                      Backup JSON (técnico)
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
