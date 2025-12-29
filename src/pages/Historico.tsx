@@ -660,6 +660,19 @@ const Historico = () => {
             💡 <strong>Dica:</strong> Para adicionar dados a uma planilha existente, exporte apenas os registros novos (ex: "Últimos 7 dias") e cole abaixo dos dados anteriores.
           </div>
 
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setDialogExportarAberto(false);
+                navigate('/settings/google-sheets');
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              Precisa de ajuda? Veja o tutorial completo para Google Sheets →
+            </button>
+          </div>
+
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setDialogExportarAberto(false)}>
               Cancelar
