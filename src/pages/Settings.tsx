@@ -415,28 +415,6 @@ const Settings = () => {
                     </DropdownMenu>
                   }
                 />
-                <SettingsItem
-                  icone={<Database className="w-5 h-5" />}
-                  titulo="Backup técnico (JSON)"
-                  descricao="Arquivo técnico para migração ou recuperação de dados"
-                  acao={
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={exportarDados}
-                      disabled={exportando}
-                    >
-                      {exportando ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Download className="w-4 h-4" />
-                      )}
-                    </Button>
-                  }
-                />
-                <p className="text-xs text-muted-foreground mt-1 px-4 pb-2">
-                  💡 Use o backup JSON apenas se for migrar dados entre dispositivos ou sistemas
-                </p>
               </>
             )}
             
@@ -487,7 +465,7 @@ const Settings = () => {
                           Limpando...
                         </>
                       ) : (
-                        'Sim, deletar tudo'
+                        'Sim, limpar tudo'
                       )}
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -497,12 +475,45 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* SEÇÃO 4 - SOBRE */}
+        {/* SEÇÃO 4 - AVANÇADO */}
+        {isPremium && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <SettingsIcon className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
+                Avançado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <SettingsItem
+                icone={<Database className="w-5 h-5" />}
+                titulo="Backup completo"
+                descricao="Salve todos os seus dados para transferir para outro celular"
+                acao={
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={exportarDados}
+                    disabled={exportando}
+                  >
+                    {exportando ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                  </Button>
+                }
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* SEÇÃO 5 - SOBRE */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Info className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
-              Sobre o App
+              <Info className="w-5 h-5 text-blue-600" aria-hidden="true" />
+              Sobre
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
