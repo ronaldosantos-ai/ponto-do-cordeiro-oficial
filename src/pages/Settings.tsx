@@ -383,7 +383,7 @@ const Settings = () => {
                             const historico = await obterHistorico();
                             if (historico.length > 0) {
                               gerarPDFHistorico(historico);
-                              toast({ title: "✅ Histórico exportado" });
+                              toast({ title: "✅ Relatório TXT exportado" });
                             } else {
                               toast({ title: "⚠️ Nenhum dado para exportar" });
                             }
@@ -391,25 +391,17 @@ const Settings = () => {
                             setExportando(false);
                           }
                         }}>
-                          <Database className="w-4 h-4 mr-2" />
-                          Histórico completo
+                          <FileText className="w-4 h-4 mr-2" />
+                          Relatório em TXT
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={async () => {
-                          setExportando(true);
-                          try {
-                            const historico = await obterHistorico();
-                            if (historico.length > 0) {
-                              gerarPDFAnalises(historico, 'Todos');
-                              toast({ title: "✅ Análises exportadas" });
-                            } else {
-                              toast({ title: "⚠️ Nenhum dado para exportar" });
-                            }
-                          } finally {
-                            setExportando(false);
-                          }
+                        <DropdownMenuItem onClick={() => {
+                          toast({ 
+                            title: "📄 PDF em breve",
+                            description: "Exportação em PDF estará disponível em uma próxima atualização"
+                          });
                         }}>
-                          <BarChart3 className="w-4 h-4 mr-2" />
-                          Análises e insights
+                          <FileText className="w-4 h-4 mr-2" />
+                          Relatório em PDF
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -490,18 +482,39 @@ const Settings = () => {
                 titulo="Backup completo"
                 descricao="Salve todos os seus dados para transferir para outro celular"
                 acao={
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={exportarDados}
-                    disabled={exportando}
-                  >
-                    {exportando ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={exportando}
+                      >
+                        {exportando ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Fazer backup dos dados?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Um arquivo será baixado com todas as suas simulações e alertas. Guarde esse arquivo para restaurar seus dados em outro aparelho.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={exportarDados}
+                          className="h-12"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Baixar backup
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 }
               />
             </CardContent>
