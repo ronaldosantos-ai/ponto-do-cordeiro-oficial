@@ -7,7 +7,8 @@ import {
   DollarSign, 
   Scale, 
   PieChart as PieChartIcon,
-  AlertCircle
+  AlertCircle,
+  FileDown
 } from "lucide-react";
 import { 
   LineChart, 
@@ -27,6 +28,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { HistoricoItem, obterHistorico, verificarPremium } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { gerarPDFAnalises } from "@/lib/pdf";
 
 type FiltroPeriodo = 7 | 30 | 90 | 'todos';
 
@@ -133,10 +136,12 @@ function prepararDadosGraficoBarras(historico: HistoricoItem[]) {
 const Graficos = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   
   const [periodo, setPeriodo] = useState<FiltroPeriodo>(30);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [exportando, setExportando] = useState(false);
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
@@ -202,6 +207,29 @@ const Graficos = () => {
           <h1 className="text-xl font-bold text-foreground">Evolução</h1>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={async () => {
+              if (historico.length === 0) return;
+              setExportando(true);
+              try {
+                const periodoLabel = periodo === 'todos' ? 'Todos os períodos' : `Últimos ${periodo} dias`;
+                gerarPDFAnalises(historico, periodoLabel);
+                toast({ title: "✅ Análises exportadas" });
+              } finally {
+                setExportando(false);
+              }
+            }}
+            disabled={historico.length === 0 || exportando}
+            className="h-10 w-10"
+          >
+            {exportando ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4" />
+            )}
+          </Button>
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
             ⭐ Premium
           </span>
