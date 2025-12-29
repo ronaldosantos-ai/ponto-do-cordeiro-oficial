@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -177,20 +177,11 @@ const Graficos = () => {
     carregar();
   }, [user]);
 
-  // Se não for premium ou não autenticado, mostrar loading
-  if (!verificarPremium() || authLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Preparar dados dos gráficos
-  const dadosLucro = prepararDadosGraficoLucro(historico, periodo);
-  const dadosPizza = prepararDadosGraficoPizza(historico);
-  const dadosPeso = prepararDadosGraficoPeso(historico, periodo);
-  const dadosBarras = prepararDadosGraficoBarras(historico);
+  // Preparar dados dos gráficos - DEVE VIR ANTES de qualquer retorno condicional
+  const dadosLucro = useMemo(() => prepararDadosGraficoLucro(historico, periodo), [historico, periodo]);
+  const dadosPizza = useMemo(() => prepararDadosGraficoPizza(historico), [historico]);
+  const dadosPeso = useMemo(() => prepararDadosGraficoPeso(historico, periodo), [historico, periodo]);
+  const dadosBarras = useMemo(() => prepararDadosGraficoBarras(historico), [historico]);
 
   // Calcular métricas
   const totalSimulacoes = historico.length;
@@ -201,6 +192,15 @@ const Graficos = () => {
   const taxaVenda = historico.length > 0 
     ? (historico.filter(item => item.resultado.decisao === 'vender').length / historico.length) * 100 
     : 0;
+
+  // Se não for premium ou não autenticado, mostrar loading
+  if (!verificarPremium() || authLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container pb-24">

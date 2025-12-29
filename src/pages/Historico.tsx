@@ -153,6 +153,28 @@ const Historico = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [filtro, busca, user]);
 
+  // Calcular contadores para cada opção de exportação - DEVE VIR ANTES de retornos condicionais
+  const contadores = useMemo(() => {
+    const agora = new Date();
+    const seteDiasAtras = new Date(agora);
+    seteDiasAtras.setDate(agora.getDate() - 7);
+    const trintaDiasAtras = new Date(agora);
+    trintaDiasAtras.setDate(agora.getDate() - 30);
+
+    return {
+      filtrado: historico.length,
+      seteDias: todosRegistros.filter(item => new Date(item.timestamp) >= seteDiasAtras).length,
+      trintaDias: todosRegistros.filter(item => new Date(item.timestamp) >= trintaDiasAtras).length,
+      todos: todosRegistros.length,
+    };
+  }, [historico, todosRegistros]);
+
+  // Calcular resumo
+  const lucroTotal = historico.reduce((acc, item) => {
+    return acc + (item.resultado.lucroAtual || 0);
+  }, 0);
+  const quantidadeSimulacoes = historico.length;
+
   // Se não for premium ou não autenticado, mostrar loading
   if (!verificarPremium() || authLoading || !user) {
     return (
@@ -214,22 +236,6 @@ const Historico = () => {
   const limparDataSelecionada = () => {
     setDataSelecionada(undefined);
   };
-
-  // Calcular contadores para cada opção de exportação
-  const contadores = useMemo(() => {
-    const agora = new Date();
-    const seteDiasAtras = new Date(agora);
-    seteDiasAtras.setDate(agora.getDate() - 7);
-    const trintaDiasAtras = new Date(agora);
-    trintaDiasAtras.setDate(agora.getDate() - 30);
-
-    return {
-      filtrado: historico.length,
-      seteDias: todosRegistros.filter(item => new Date(item.timestamp) >= seteDiasAtras).length,
-      trintaDias: todosRegistros.filter(item => new Date(item.timestamp) >= trintaDiasAtras).length,
-      todos: todosRegistros.length,
-    };
-  }, [historico, todosRegistros]);
 
   // Gerar CSV do histórico
   const gerarCSV = (items: HistoricoItem[]) => {
@@ -295,12 +301,6 @@ const Historico = () => {
       description: `${itemsParaExportar.length} registro(s) exportado(s)` 
     });
   };
-
-  // Calcular resumo
-  const lucroTotal = historico.reduce((acc, item) => {
-    return acc + (item.resultado.lucroAtual || 0);
-  }, 0);
-  const quantidadeSimulacoes = historico.length;
 
   return (
     <div className="page-container">
