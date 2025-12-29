@@ -60,6 +60,7 @@ const Historico = () => {
   const [atualizando, setAtualizando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [dialogExportarAberto, setDialogExportarAberto] = useState(false);
+  const [dialogPDFAberto, setDialogPDFAberto] = useState(false);
   const [opcaoExportar, setOpcaoExportar] = useState<'filtrado' | '7dias' | '30dias' | 'todos'>('filtrado');
   const [todosRegistros, setTodosRegistros] = useState<HistoricoItem[]>([]);
 
@@ -328,16 +329,7 @@ const Historico = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={async () => {
-              if (historico.length === 0) return;
-              setExportando(true);
-              try {
-                gerarPDFHistorico(historico);
-                toast({ title: "✅ PDF exportado" });
-              } finally {
-                setExportando(false);
-              }
-            }}
+            onClick={() => setDialogPDFAberto(true)}
             disabled={historico.length === 0 || exportando}
             className="h-10"
           >
@@ -679,6 +671,41 @@ const Historico = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Confirmação PDF */}
+      <AlertDialog open={dialogPDFAberto} onOpenChange={setDialogPDFAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <FileDown className="w-5 h-5" />
+              Exportar PDF?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Será gerado um relatório PDF com <strong>{historico.length}</strong> simulação(ões) 
+              do período filtrado atualmente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setExportando(true);
+                setDialogPDFAberto(false);
+                try {
+                  gerarPDFHistorico(historico);
+                  toast({ title: "✅ PDF exportado" });
+                } finally {
+                  setExportando(false);
+                }
+              }}
+              className="h-12"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Baixar PDF
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
