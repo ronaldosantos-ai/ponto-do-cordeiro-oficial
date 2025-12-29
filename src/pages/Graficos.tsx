@@ -190,24 +190,31 @@ const Graficos = () => {
     <div className="page-container pb-24">
       {/* Header */}
       <header className="flex items-center justify-between mb-6 animate-fade-in">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/historico')}
-          className="p-2 hover:bg-secondary h-12"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
-        </Button>
-        <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
-          ⭐ Premium
-        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/historico')}
+            className="p-2 hover:bg-secondary h-10 w-10"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-foreground">Evolução</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
+            ⭐ Premium
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/settings')}
+            className="h-10 w-10 rounded-full"
+          >
+            👤
+          </Button>
+        </div>
       </header>
-
-      {/* Título */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Evolução e Análises</h1>
-        <p className="text-muted-foreground text-sm mt-1">Visualize seus resultados ao longo do tempo</p>
-      </div>
 
       {/* Seletor de período */}
       <div className="flex gap-2 mb-6">
