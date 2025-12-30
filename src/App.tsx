@@ -8,7 +8,7 @@ import { AlertasNotifier } from "./components/AlertasNotifier";
 import { BottomNav } from "./components/BottomNav";
 import { AdminRoute } from "./components/AdminRoute";
 import Index from "./pages/Index";
-import Landing from "./pages/Landing";
+import Landing from "./pages/LandingV2";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
 import Historico from "./pages/Historico";
