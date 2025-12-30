@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logoPontoCordeiro from "@/assets/logo-ponto-cordeiro.png";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const LandingV2 = () => {
   const navigate = useNavigate();
@@ -35,8 +36,17 @@ const LandingV2 = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="min-h-screen flex items-center bg-gradient-to-b from-background to-muted/30">
-        <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
+      <section 
+        className="min-h-screen flex items-center relative"
+        style={{
+          backgroundImage: `url(${heroBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Overlay branco com 20% de opacidade */}
+        <div className="absolute inset-0 bg-white/80"></div>
+        <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}
             <div>
