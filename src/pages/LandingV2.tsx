@@ -291,7 +291,7 @@ const LandingV2 = () => {
               <div className="mb-6 mt-4">
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-muted-foreground line-through">R$ 29,90</span>
+                  <span className="text-lg font-bold text-muted-foreground line-through">R$ 29,90</span>
                   <span className="text-5xl font-extrabold text-emerald-600">R$ 19,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
