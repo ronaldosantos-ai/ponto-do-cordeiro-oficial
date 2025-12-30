@@ -19,6 +19,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logoPontoCordeiro from "@/assets/logo-ponto-cordeiro.png";
 
 const LandingV2 = () => {
   const navigate = useNavigate();
@@ -41,8 +42,8 @@ const LandingV2 = () => {
             <div>
               {/* Logo */}
               <div className="flex items-center gap-3 mb-8">
-                <span className="text-4xl">🐑</span>
-                <span className="text-xl font-bold text-foreground">Ponto do Cordeiro</span>
+                <img src={logoPontoCordeiro} alt="Ponto do Cordeiro" className="h-12 lg:h-16 w-auto" />
+                <span className="text-xl lg:text-2xl font-bold text-foreground">Ponto do Cordeiro</span>
               </div>
 
               {/* Headline */}
@@ -290,9 +291,11 @@ const LandingV2 = () => {
               <div className="mb-6 mt-4">
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium</h3>
                 <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-muted-foreground line-through">R$ 29,90</span>
                   <span className="text-5xl font-extrabold text-emerald-600">R$ 19,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
+                <div className="text-sm text-emerald-600 font-semibold mt-1">Por tempo limitado!</div>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -338,13 +341,15 @@ const LandingV2 = () => {
             <Card className="p-8 border-2 hover:shadow-lg transition-all">
               <div className="mb-6">
                 <Badge className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 mb-2 hover:bg-blue-100">
-                  💎 Economize 17%
+                  💎 Economize 34%
                 </Badge>
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Anual</h3>
                 <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-muted-foreground line-through">R$ 297</span>
                   <span className="text-4xl font-extrabold text-foreground">R$ 197</span>
                   <span className="text-muted-foreground">/ano</span>
                 </div>
+                <div className="text-sm text-emerald-600 font-semibold mt-1">Por tempo limitado!</div>
                 <div className="text-sm text-muted-foreground mt-1">12x R$ 16,41</div>
               </div>
 
