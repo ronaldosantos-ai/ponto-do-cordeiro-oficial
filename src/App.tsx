@@ -8,6 +8,7 @@ import { AlertasNotifier } from "./components/AlertasNotifier";
 import { BottomNav } from "./components/BottomNav";
 import { AdminRoute } from "./components/AdminRoute";
 import Index from "./pages/Index";
+import Landing from "./pages/Landing";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
 import Historico from "./pages/Historico";
@@ -39,6 +40,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/premium" element={<Premium />} />
             <Route path="/premium-info" element={<PremiumInfo />} />
