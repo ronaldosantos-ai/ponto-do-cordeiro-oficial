@@ -9,16 +9,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { verificarPremium, obterHistorico, HistoricoItem } from "@/lib/storage";
+import { obterHistorico, HistoricoItem } from "@/lib/storage";
 import { obterAlertas, salvarAlerta, toggleAlerta, deletarAlerta, Alerta } from "@/lib/alertas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { EmptyState } from "@/components/EmptyState";
 
 const Alertas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { isPremium, loading: premiumLoading } = usePremium();
 
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
@@ -57,14 +59,14 @@ const Alertas = () => {
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
-    if (!verificarPremium()) {
+    if (!premiumLoading && !isPremium) {
       navigate('/premium-info');
       return;
     }
     if (!authLoading && !user) {
       navigate('/auth');
     }
-  }, [navigate, user, authLoading]);
+  }, [navigate, user, authLoading, isPremium, premiumLoading]);
 
   useEffect(() => {
     if (user) {
@@ -73,7 +75,7 @@ const Alertas = () => {
   }, [user]);
 
   // Loading state
-  if (!verificarPremium() || authLoading || !user) {
+  if (premiumLoading || authLoading || !user || !isPremium) {
     return (
       <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

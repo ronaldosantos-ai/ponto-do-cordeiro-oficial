@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Crown, TrendingUp, History, Bell, Filter, Check, X, BarChart3, Share2 } from "lucide-react";
+import { ArrowLeft, Crown, TrendingUp, History, Bell, Filter, Check, X, BarChart3, Share2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ativarPremium } from "@/lib/storage";
+
+const CHECKOUT_MENSAL = "https://checkout.ticto.app/O01E1A700";
+const CHECKOUT_ANUAL = "https://checkout.ticto.app/O7A8E915F";
 
 const PremiumInfo = () => {
   const navigate = useNavigate();
@@ -52,13 +54,12 @@ const PremiumInfo = () => {
     { recurso: "Exportar relatórios PDF/CSV", gratuito: false, premium: true },
   ];
 
-  const handleAssinar = () => {
-    alert('Integração com pagamento em breve');
+  const handleCheckoutMensal = () => {
+    window.open(CHECKOUT_MENSAL, '_blank');
   };
 
-  const handleAtivarTeste = () => {
-    ativarPremium();
-    navigate('/premium');
+  const handleCheckoutAnual = () => {
+    window.open(CHECKOUT_ANUAL, '_blank');
   };
 
   return (
@@ -142,29 +143,55 @@ const PremiumInfo = () => {
         </div>
       </div>
 
-      {/* Card de Preço */}
-      <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-xl text-white text-center mb-6 animate-fade-in">
-        <p className="text-sm opacity-90 mb-2">Acesso completo por apenas</p>
-        <p className="text-4xl font-bold">R$ 29,90<span className="text-lg font-normal">/mês</span></p>
-        <p className="text-sm opacity-80 mt-2">Cancele quando quiser</p>
+      {/* Planos de Preço */}
+      <div className="grid gap-4 mb-6">
+        {/* Plano Anual - DESTAQUE */}
+        <div className="relative bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-xl text-white animate-fade-in overflow-hidden">
+          <div className="absolute top-3 right-3 bg-white text-amber-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+            <Star className="w-3 h-3" />
+            MAIS VANTAJOSO
+          </div>
+          <p className="text-sm opacity-90 mb-1">Programa Fundadores</p>
+          <p className="font-bold text-lg mb-2">Plano Anual</p>
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-3xl font-bold">R$ 197</span>
+            <span className="text-sm opacity-80">/ano</span>
+          </div>
+          <p className="text-xs opacity-80 mb-4">Apenas R$ 16,42/mês • Economia de 18%</p>
+          <Button
+            onClick={handleCheckoutAnual}
+            className="w-full h-12 text-base font-bold bg-white text-amber-600 hover:bg-amber-50"
+          >
+            Começar Teste Grátis
+          </Button>
+          <p className="text-xs text-center mt-2 opacity-80">7 dias grátis • Cancele quando quiser</p>
+        </div>
+
+        {/* Plano Mensal */}
+        <div className="card-container border-2 border-border animate-fade-in">
+          <p className="text-sm text-muted-foreground mb-1">Oferta de Lançamento</p>
+          <p className="font-bold text-lg text-foreground mb-2">Plano Mensal</p>
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-2xl font-bold text-foreground">R$ 19,90</span>
+            <span className="text-sm text-muted-foreground">/mês</span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">Cobrança mensal recorrente</p>
+          <Button
+            onClick={handleCheckoutMensal}
+            variant="outline"
+            className="w-full h-12 text-base font-semibold border-2"
+          >
+            Começar Teste Grátis
+          </Button>
+          <p className="text-xs text-center mt-2 text-muted-foreground">7 dias grátis • Cancele quando quiser</p>
+        </div>
       </div>
 
-      {/* Botão de Ação Principal */}
-      <Button
-        onClick={handleAssinar}
-        className="w-full h-14 text-lg font-bold bg-green-600 hover:bg-green-700 text-white mb-3"
-      >
-        Assinar Premium
-      </Button>
-
-      {/* Botão de Teste (temporário) */}
-      <Button
-        variant="outline"
-        onClick={handleAtivarTeste}
-        className="w-full h-12 border-2"
-      >
-        🔓 Ativar Premium (Teste)
-      </Button>
+      {/* Garantia */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-center animate-fade-in">
+        <p className="text-green-800 font-semibold">🛡️ Garantia de 30 dias</p>
+        <p className="text-sm text-green-700 mt-1">Se não gostar, devolvemos 100% do valor</p>
+      </div>
 
       {/* Rodapé */}
       <div className="text-center mt-8">
