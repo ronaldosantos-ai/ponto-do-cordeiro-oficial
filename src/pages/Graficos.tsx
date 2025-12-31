@@ -26,8 +26,9 @@ import {
   Bar
 } from 'recharts';
 import { Button } from "@/components/ui/button";
-import { HistoricoItem, obterHistorico, verificarPremium } from "@/lib/storage";
+import { HistoricoItem, obterHistorico } from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/use-toast";
 import { gerarPDFAnalises } from "@/lib/pdf";
 import {
@@ -146,6 +147,7 @@ function prepararDadosGraficoBarras(historico: HistoricoItem[]) {
 const Graficos = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { isPremium, loading: premiumLoading } = usePremium();
   const { toast } = useToast();
   
   const [periodo, setPeriodo] = useState<FiltroPeriodo>(30);
@@ -156,14 +158,14 @@ const Graficos = () => {
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
-    if (!verificarPremium()) {
+    if (!premiumLoading && !isPremium) {
       navigate('/premium-info');
       return;
     }
     if (!authLoading && !user) {
       navigate('/auth');
     }
-  }, [navigate, user, authLoading]);
+  }, [navigate, user, authLoading, isPremium, premiumLoading]);
 
   // Carregar histórico
   useEffect(() => {
@@ -194,7 +196,7 @@ const Graficos = () => {
     : 0;
 
   // Se não for premium ou não autenticado, mostrar loading
-  if (!verificarPremium() || authLoading || !user) {
+  if (premiumLoading || authLoading || !user || !isPremium) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

@@ -150,10 +150,62 @@ export async function limparHistorico(): Promise<void> {
   }
 }
 
-// PREMIUM
+// PREMIUM - Legacy sync check (fallback)
 export function verificarPremium(): boolean {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem('ponto_cordeiro_premium') === 'ativo';
+}
+
+// PREMIUM - Async check from database
+export async function verificarPremiumAsync(userEmail?: string): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user && !userEmail) {
+      console.log('⚠️ Usuário não autenticado para verificar premium');
+      return verificarPremium(); // Fallback to localStorage
+    }
+
+    const email = userEmail || user?.email;
+    
+    if (!email) {
+      return verificarPremium();
+    }
+
+    const { data: subscription, error } = await supabase
+      .from('subscriptions')
+      .select('status, expires_at')
+      .eq('email', email.toLowerCase())
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Erro ao verificar subscription:', error);
+      return verificarPremium();
+    }
+
+    if (!subscription) {
+      console.log('ℹ️ Nenhuma subscription ativa encontrada');
+      return verificarPremium();
+    }
+
+    // Check if subscription is still valid
+    const expiresAt = new Date(subscription.expires_at);
+    const isValid = subscription.status === 'active' && expiresAt > new Date();
+
+    if (isValid) {
+      // Sync with localStorage for faster checks
+      localStorage.setItem('ponto_cordeiro_premium', 'ativo');
+    } else {
+      localStorage.removeItem('ponto_cordeiro_premium');
+    }
+
+    console.log(`✅ Premium status: ${isValid ? 'Ativo' : 'Inativo'}`);
+    return isValid;
+  } catch (error) {
+    console.error('❌ Erro ao verificar premium:', error);
+    return verificarPremium();
+  }
 }
 
 export function ativarPremium(): void {

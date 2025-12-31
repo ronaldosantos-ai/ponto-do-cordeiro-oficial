@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Landing from "./pages/LandingV2";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
+import PremiumAtivado from "./pages/PremiumAtivado";
 import Historico from "./pages/Historico";
 import Graficos from "./pages/Graficos";
 import Alertas from "./pages/Alertas";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/premium" element={<Premium />} />
             <Route path="/premium-info" element={<PremiumInfo />} />
+            <Route path="/premium/ativado" element={<PremiumAtivado />} />
             <Route path="/historico" element={<Historico />} />
             <Route path="/graficos" element={<Graficos />} />
             <Route path="/alertas" element={<Alertas />} />

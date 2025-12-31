@@ -3,15 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, MessageCircle, Save, Bell, LogOut, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
-import { salvarSimulacao, verificarPremium } from "@/lib/storage";
+import { salvarSimulacao } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { gerarPDFSimulacao } from "@/lib/pdf";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumBadge } from "@/components/PremiumBadge";
 
 const Premium = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isPremium, loading: premiumLoading } = usePremium();
 
   // Estados básicos
   const [peso, setPeso] = useState('');
@@ -33,17 +36,17 @@ const Premium = () => {
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
-    if (!verificarPremium()) {
+    if (!premiumLoading && !isPremium) {
       navigate('/premium-info');
       return;
     }
     if (!authLoading && !user) {
       navigate('/auth');
     }
-  }, [navigate, user, authLoading]);
+  }, [navigate, user, authLoading, isPremium, premiumLoading]);
 
   // Se não for premium ou não autenticado, não renderiza nada
-  if (!verificarPremium() || authLoading || !user) {
+  if (premiumLoading || authLoading || !user || !isPremium) {
     return (
       <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -239,9 +242,7 @@ Gerado por Ponto do Cordeiro Premium`;
           Voltar
         </Button>
         <div className="flex items-center gap-2">
-          <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
-            ⭐ Premium
-          </span>
+          <PremiumBadge />
           <Button
             variant="ghost"
             size="icon"

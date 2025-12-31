@@ -20,9 +20,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { HistoricoItem, obterHistorico, deletarItem, limparHistorico, verificarPremium } from "@/lib/storage";
+import { HistoricoItem, obterHistorico, deletarItem, limparHistorico } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { EmptyState } from "@/components/EmptyState";
 import { FileQuestion } from "lucide-react";
 import { gerarPDFHistorico } from "@/lib/pdf";
@@ -51,6 +52,7 @@ const Historico = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { isPremium, loading: premiumLoading } = usePremium();
 
   const [filtro, setFiltro] = useState<FiltroTipo>(7);
   const [busca, setBusca] = useState('');
@@ -120,14 +122,14 @@ const Historico = () => {
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
-    if (!verificarPremium()) {
+    if (!premiumLoading && !isPremium) {
       navigate('/premium-info');
       return;
     }
     if (!authLoading && !user) {
       navigate('/auth');
     }
-  }, [navigate, user, authLoading]);
+  }, [navigate, user, authLoading, isPremium, premiumLoading]);
 
   // Carregar histórico ao montar e quando filtros mudam
   useEffect(() => {
@@ -176,7 +178,7 @@ const Historico = () => {
   const quantidadeSimulacoes = historico.length;
 
   // Se não for premium ou não autenticado, mostrar loading
-  if (!verificarPremium() || authLoading || !user) {
+  if (premiumLoading || authLoading || !user || !isPremium) {
     return (
       <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
