@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import GoogleSheets from "./pages/GoogleSheets";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Install from "./pages/Install";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import TermosDeUso from "./pages/TermosDeUso";
 // Admin pages
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/alertas" element={<Alertas />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/google-sheets" element={<GoogleSheets />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
             {/* Admin Routes */}

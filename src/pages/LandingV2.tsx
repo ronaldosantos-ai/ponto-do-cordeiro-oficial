@@ -17,6 +17,7 @@ import {
   Calculator,
   Target,
   Shield,
+  Smartphone,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logoPontoCordeiro from "@/assets/logo-ponto-cordeiro.png";
@@ -517,6 +518,12 @@ const LandingV2 = () => {
                 <li>
                   <a href="/auth" className="hover:text-white transition-colors">
                     Login
+                  </a>
+                </li>
+                <li>
+                  <a href="/install" className="hover:text-white transition-colors flex items-center gap-1">
+                    <Smartphone className="w-4 h-4" />
+                    Instalar App
                   </a>
                 </li>
               </ul>
