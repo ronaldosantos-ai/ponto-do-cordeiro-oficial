@@ -494,7 +494,7 @@ const LandingV2 = () => {
             {/* Logo */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🐑</span>
+                <img src={logoPontoCordeiro} alt="Ponto do Cordeiro" className="h-10 w-auto" />
                 <span className="text-white font-bold">Ponto do Cordeiro</span>
               </div>
               <p className="text-sm">Decisão inteligente para venda de cordeiros.</p>
