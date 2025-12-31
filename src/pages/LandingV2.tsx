@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import logoPontoCordeiro from "@/assets/logo-ponto-cordeiro.png";
 import heroBackground from "@/assets/hero-background.jpg";
+import SimulacaoPopup from "@/components/SimulacaoPopup";
 
 const LandingV2 = () => {
   const navigate = useNavigate();
@@ -71,14 +72,15 @@ const LandingV2 = () => {
               </p>
 
               {/* CTA Principal */}
-              <Button
-                size="lg"
-                onClick={handleCTA}
-                className="h-16 lg:h-20 px-8 lg:px-12 text-lg lg:text-xl font-bold bg-emerald-600 hover:bg-emerald-700 shadow-2xl hover:shadow-emerald-600/50 transition-all duration-300 w-full lg:w-auto"
-              >
-                <Zap className="w-6 h-6 mr-3" />
-                Testar Grátis por 7 Dias
-              </Button>
+              <SimulacaoPopup>
+                <Button
+                  size="lg"
+                  className="h-16 lg:h-20 px-8 lg:px-12 text-lg lg:text-xl font-bold bg-emerald-600 hover:bg-emerald-700 shadow-2xl hover:shadow-emerald-600/50 transition-all duration-300 w-full lg:w-auto"
+                >
+                  <Zap className="w-6 h-6 mr-3" />
+                  ⚡ Simulação Gratuita Instantânea
+                </Button>
+              </SimulacaoPopup>
 
               {/* Benefícios */}
               <div className="mt-6 space-y-2">
