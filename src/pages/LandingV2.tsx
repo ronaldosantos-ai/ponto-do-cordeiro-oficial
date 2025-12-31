@@ -532,8 +532,8 @@ const LandingV2 = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Privacidade
+                  <a href="/politica-privacidade" className="hover:text-white transition-colors">
+                    Política de Privacidade
                   </a>
                 </li>
               </ul>
