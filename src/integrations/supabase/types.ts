@@ -83,6 +83,45 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string | null
+          id: string
+          plan_type: string
+          started_at: string
+          status: string
+          ticto_transaction_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          plan_type?: string
+          started_at?: string
+          status?: string
+          ticto_transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          plan_type?: string
+          started_at?: string
+          status?: string
+          ticto_transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
