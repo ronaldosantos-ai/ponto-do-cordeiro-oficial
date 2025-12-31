@@ -527,7 +527,7 @@ const LandingV2 = () => {
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a href="/termos-de-uso" className="hover:text-white transition-colors">
                     Termos de Uso
                   </a>
                 </li>
