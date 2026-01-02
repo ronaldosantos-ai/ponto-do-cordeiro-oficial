@@ -5,6 +5,7 @@ export interface SimulationData {
   precoVenda: number;
   ganhoPesoEsperado?: number; // opcional, Premium
   diasAdicionais?: number; // opcional, Premium
+  medicamentos?: number; // opcional, custos extras
 }
 
 export interface ResultData {
@@ -23,7 +24,8 @@ export interface ResultData {
 }
 
 export function calcularDecisao(data: SimulationData): ResultData {
-  const custoTotal = data.dias * data.custo;
+  const medicamentos = data.medicamentos || 0;
+  const custoTotal = (data.dias * data.custo) + medicamentos;
   const custoKg = custoTotal / data.peso;
   const receitaAtual = data.peso * data.precoVenda;
   const lucroAtual = receitaAtual - custoTotal;
@@ -43,8 +45,9 @@ export function calcularDecisao(data: SimulationData): ResultData {
 }
 
 export function calcularProjecao(data: SimulationData): ResultData {
-  // Cálculo atual (igual ao MVP)
-  const custoTotal = data.dias * data.custo;
+  // Cálculo atual (inclui medicamentos)
+  const medicamentos = data.medicamentos || 0;
+  const custoTotal = (data.dias * data.custo) + medicamentos;
   const custoKg = custoTotal / data.peso;
   const receitaAtual = data.peso * data.precoVenda;
   const lucroAtual = receitaAtual - custoTotal;

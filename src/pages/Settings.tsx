@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, BarChart3, FileSpreadsheet, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, FileSpreadsheet, ChevronRight, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface SettingsItemProps {
   icone: React.ReactNode;
@@ -299,12 +305,55 @@ const Settings = () => {
             <CardContent className="p-0">
               <SettingsItem
                 icone={<Crown className="w-5 h-5" />}
-                titulo="Status da conta"
+                titulo="Plano Premium"
                 descricao="Você tem acesso a todos os recursos"
                 acao={
-                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                    ✅ Ativo
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                      Ativo
+                    </Badge>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-red-600"
+                        >
+                          <ShieldX className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Tem certeza que quer cancelar?</AlertDialogTitle>
+                          <AlertDialogDescription asChild>
+                            <div className="space-y-3">
+                              <p className="text-green-600 font-semibold">
+                                Com Premium você já economizou tempo e tomou decisões mais seguras!
+                              </p>
+                              <p>Por apenas R$ 19,90/mês você tem:</p>
+                              <ul className="list-disc pl-5 space-y-1">
+                                <li>Projeções que evitam prejuízo</li>
+                                <li>Histórico completo</li>
+                                <li>Alertas automáticos</li>
+                              </ul>
+                              <p className="text-lg">Seus cordeiros agradecem! 🐑</p>
+                            </div>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                          <AlertDialogAction className="bg-green-600 hover:bg-green-700 h-12">
+                            Continuar Premium
+                          </AlertDialogAction>
+                          <AlertDialogCancel 
+                            onClick={handleDesativarPremium}
+                            className="text-red-600 text-sm h-10"
+                          >
+                            Cancelar mesmo assim
+                          </AlertDialogCancel>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 }
               />
               <SettingsItem
@@ -312,35 +361,6 @@ const Settings = () => {
                 titulo="Dados sincronizados"
                 descricao={`${numSimulacoes} simulações • ${numAlertas} alertas ativos`}
               />
-              <div className="p-4 border-t border-border">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      Desativar Premium
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Desativar Premium?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Você perderá acesso aos recursos premium. Seus dados serão mantidos.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDesativarPremium}
-                        className="bg-red-600 hover:bg-red-700 h-12"
-                      >
-                        Desativar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
             </CardContent>
           </Card>
         )}
@@ -414,106 +434,113 @@ const Settings = () => {
                 Limpar cache
               </Button>
               
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                    Limpar todos os dados
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>⚠️ Tem certeza absoluta?</AlertDialogTitle>
-                    <AlertDialogDescription asChild>
-                      <div>
-                        <p>Use apenas se quiser recomeçar do zero. Esta ação é IRREVERSÍVEL. Todos os seus dados serão perdidos:</p>
-                        <ul className="list-disc pl-5 mt-2 space-y-1">
-                          <li>Todas as simulações salvas</li>
-                          <li>Todos os alertas configurados</li>
-                          <li>Todas as configurações</li>
-                        </ul>
-                        <p className="mt-2 font-semibold">Você não poderá recuperar esses dados.</p>
-                      </div>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleLimparTudo}
-                      className="bg-red-600 hover:bg-red-700 h-12"
-                      disabled={limpando}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Limpar todos os dados</span>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="text-gray-400 hover:text-red-600"
                     >
-                      {limpando ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Limpando...
-                        </>
-                      ) : (
-                        'Sim, limpar tudo'
-                      )}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>⚠️ Tem certeza absoluta?</AlertDialogTitle>
+                      <AlertDialogDescription asChild>
+                        <div>
+                          <p>Use apenas se quiser recomeçar do zero. Esta ação é IRREVERSÍVEL. Todos os seus dados serão perdidos:</p>
+                          <ul className="list-disc pl-5 mt-2 space-y-1">
+                            <li>Todas as simulações salvas</li>
+                            <li>Todos os alertas configurados</li>
+                            <li>Todas as configurações</li>
+                          </ul>
+                          <p className="mt-2 font-semibold">Você não poderá recuperar esses dados.</p>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleLimparTudo}
+                        className="bg-red-600 hover:bg-red-700 h-12"
+                        disabled={limpando}
+                      >
+                        {limpando ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Limpando...
+                          </>
+                        ) : (
+                          'Sim, limpar tudo'
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* SEÇÃO 4 - AVANÇADO */}
+        {/* SEÇÃO 4 - AVANÇADO (Colapsável) */}
         {isPremium && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <SettingsIcon className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
-                Avançado
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <SettingsItem
-                icone={<Database className="w-5 h-5" />}
-                titulo="Backup completo"
-                descricao="Salve todos os seus dados para transferir para outro celular"
-                acao={
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        disabled={exportando}
-                      >
-                        {exportando ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Download className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Fazer backup dos dados?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Um arquivo será baixado com todas as suas simulações e alertas. Guarde esse arquivo para restaurar seus dados em outro aparelho.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={exportarDados}
-                          className="h-12"
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Baixar backup
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                }
-              />
-            </CardContent>
-          </Card>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="avancado" className="border rounded-lg bg-card">
+              <AccordionTrigger className="px-4 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <SettingsIcon className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
+                  <span className="text-base font-semibold">Avançado</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-0 pb-0">
+                <div className="border-t border-border">
+                  <SettingsItem
+                    icone={<Database className="w-5 h-5" />}
+                    titulo="Backup completo"
+                    descricao="Salve todos os seus dados para transferir para outro celular"
+                    acao={
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            disabled={exportando}
+                          >
+                            {exportando ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Fazer backup dos dados?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Um arquivo será baixado com todas as suas simulações e alertas. Guarde esse arquivo para restaurar seus dados em outro aparelho.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="h-12">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={exportarDados}
+                              className="h-12"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Baixar backup
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    }
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         )}
 
         {/* SEÇÃO 5 - SOBRE */}
