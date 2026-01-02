@@ -10,12 +10,17 @@ const items = [
   { path: '/settings', icon: Settings, label: 'Config' }
 ];
 
+// Rotas onde o BottomNav deve aparecer
+const allowedRoutes = ['/premium', '/historico', '/graficos', '/alertas', '/settings'];
+
 export function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const isPremium = verificarPremium();
   
+  // Só mostrar para Premium E em rotas permitidas
   if (!isPremium) return null;
+  if (!allowedRoutes.includes(location.pathname)) return null;
   
   return (
     <nav 
