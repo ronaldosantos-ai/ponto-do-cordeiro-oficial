@@ -298,35 +298,22 @@ const Index = () => {
                 <Button variant="outline" className="mt-3 w-full h-12 border-2" onClick={handleNovaSimulacao}>
                   Nova simulação
                 </Button>
-              </div>
+            </div>
+            </div>
+          )}
 
-              {/* Oferta Premium */}
-              <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-                <div className="flex items-start gap-3">
-                  <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-1" aria-hidden="true" />
-                  <div className="flex-1">
-                    <h3 className="text-base font-semibold text-foreground">Recursos Premium</h3>
-                    <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                      <li>• Simular ganho de peso futuro</li>
-                      <li>• Comparar lucro hoje vs daqui X dias</li>
-                      <li>• Salvar simulações com identificação</li>
-                      <li>• Histórico completo com filtros</li>
-                      <li>• Alertas e lembretes</li>
-                      <li>• Gráficos de evolução</li>
-                      <li>• Compartilhar via Telegram, Email e mais</li>
-                    </ul>
-                    <p className="text-xs text-muted-foreground mt-3">
-                      💡 Ajuda você a decidir o melhor momento de venda
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => navigate("/premium-info")}
-                  className="w-full mt-4 h-12 bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  Experimentar Premium
-                </Button>
-              </div>
+          {/* CTA Premium - Aparece após resultado */}
+          {resultado && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+              <p className="text-base font-semibold text-gray-900 text-center">
+                Quer saber se vale mais segurar e engordar?
+              </p>
+              <Button
+                onClick={() => navigate("/premium-info")}
+                className="mt-3 w-full h-14 bg-amber-600 hover:bg-amber-700 text-white font-bold"
+              >
+                Ver Premium
+              </Button>
             </div>
           )}
         </div>
