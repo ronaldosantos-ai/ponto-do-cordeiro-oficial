@@ -1,6 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3, FileDown, Download } from "lucide-react";
+import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, FileDown, Download } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -318,41 +324,39 @@ const Historico = () => {
           Voltar
         </Button>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setDialogExportarAberto(true)}
-            disabled={todosRegistros.length === 0}
-            className="h-10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            CSV
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setDialogPDFAberto(true)}
-            disabled={historico.length === 0 || exportando}
-            className="h-10"
-          >
-            {exportando ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={todosRegistros.length === 0 && historico.length === 0}
+                className="h-10"
+              >
+                {exportando ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Baixar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover">
+              <DropdownMenuItem 
+                onClick={() => setDialogExportarAberto(true)}
+                disabled={todosRegistros.length === 0}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setDialogPDFAberto(true)}
+                disabled={historico.length === 0 || exportando}
+              >
                 <FileDown className="w-4 h-4 mr-2" />
                 PDF
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/graficos')}
-            className="h-10"
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Gráficos
-          </Button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             size="icon"
