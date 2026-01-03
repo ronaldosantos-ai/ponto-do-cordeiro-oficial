@@ -297,9 +297,9 @@ const Index = () => {
                 </p>
                 <button
                   onClick={() => navigate("/premium-info")}
-                  className="text-amber-600 hover:text-amber-700 text-sm font-medium underline underline-offset-2"
+                  className="text-amber-600 hover:text-amber-700 text-sm font-medium underline underline-offset-2 inline-flex items-center gap-1"
                 >
-                  Quer consultas ilimitadas? Conheça o Premium
+                  Quer consultas ilimitadas? Conheça o Premium <Crown className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -407,14 +407,16 @@ const Index = () => {
       </div>
 
       {/* Footer - Upgrade Premium */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-amber-600 to-orange-700 text-white py-3 px-4 shadow-lg z-50">
-        <button
-          onClick={() => navigate("/premium-info")}
-          className="w-full flex items-center justify-center gap-2 text-base font-semibold"
-        >
-          <Crown className="w-5 h-5" />
-          Upgrade Premium
-        </button>
+      <footer className="fixed bottom-0 left-0 right-0 bg-muted/80 backdrop-blur-sm border-t border-border py-3 px-4 z-50">
+        <p className="text-center text-sm text-muted-foreground">
+          Quer mais recursos?{" "}
+          <button
+            onClick={() => navigate("/premium-info")}
+            className="text-amber-600 hover:text-amber-700 font-medium underline underline-offset-2 inline-flex items-center gap-1"
+          >
+            Conheça o Premium <Crown className="w-3.5 h-3.5" />
+          </button>
+        </p>
       </footer>
     </div>
   );
