@@ -10,7 +10,6 @@ import {
   AlertCircle,
   FileDown
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { 
   LineChart, 
   Line, 
@@ -240,23 +239,30 @@ const Graficos = () => {
           <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold text-sm">
             ⭐ Premium
           </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/settings')}
+            className="h-10 w-10 rounded-full"
+          >
+            👤
+          </Button>
         </div>
       </header>
 
       {/* Seletor de período */}
-      <div className="grid grid-cols-4 gap-2 mb-6">
+      <div className="flex gap-2 mb-6">
         {filtros.map((f) => (
           <Button
             key={f.value}
             variant={periodo === f.value ? "default" : "outline"}
-            size="sm"
+            size="lg"
             onClick={() => setPeriodo(f.value)}
-            className={cn(
-              "h-10 text-xs sm:text-sm",
+            className={`flex-1 h-12 ${
               periodo === f.value
                 ? "bg-primary hover:bg-primary/90" 
                 : "hover:bg-secondary"
-            )}
+            }`}
           >
             {f.label}
           </Button>

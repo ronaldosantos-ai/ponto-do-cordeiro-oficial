@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, FileDown, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { ArrowLeft, Trash2, RefreshCw, Search, Loader2, CalendarIcon, BarChart3, FileDown, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -37,12 +37,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type FiltroTipo = 7 | 30 | 90 | 120 | 'todos';
 
@@ -324,35 +318,41 @@ const Historico = () => {
           Voltar
         </Button>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={todosRegistros.length === 0 || exportando}
-                className="h-10"
-              >
-                {exportando ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Baixar
-                  </>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-background">
-              <DropdownMenuItem onClick={() => setDialogExportarAberto(true)}>
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDialogPDFAberto(true)}>
-                <FileText className="w-4 h-4 mr-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDialogExportarAberto(true)}
+            disabled={todosRegistros.length === 0}
+            className="h-10"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDialogPDFAberto(true)}
+            disabled={historico.length === 0 || exportando}
+            className="h-10"
+          >
+            {exportando ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <FileDown className="w-4 h-4 mr-2" />
                 PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/graficos')}
+            className="h-10"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Gráficos
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -437,18 +437,18 @@ const Historico = () => {
         </div>
         
         {/* Filtros rápidos por período */}
-        <div className="grid grid-cols-5 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {filtros.map((f) => (
             <Button
               key={f.value}
               variant={filtro === f.value && !dataSelecionada ? "default" : "outline"}
-              size="sm"
+              size="lg"
               onClick={() => {
                 setFiltro(f.value);
                 setDataSelecionada(undefined);
               }}
               className={cn(
-                "h-10 text-xs sm:text-sm",
+                "whitespace-nowrap h-12",
                 filtro === f.value && !dataSelecionada
                   ? "bg-primary hover:bg-primary/90" 
                   : "hover:bg-secondary"

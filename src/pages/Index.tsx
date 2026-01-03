@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,14 +6,12 @@ import { Label } from "@/components/ui/label";
 import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
 import { calcularDecisao, ResultData } from "@/lib/calculations";
 import { useAuth } from "@/hooks/useAuth";
-import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/use-toast";
 import { gerarTextoCompartilhamento, compartilharWhatsApp } from "@/lib/share";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { isPremium, loading: premiumLoading } = usePremium();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
@@ -21,13 +19,6 @@ const Index = () => {
   const [precoVenda, setPrecoVenda] = useState("");
   const [resultado, setResultado] = useState<ResultData | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-
-  // Redirect premium users to /premium
-  useEffect(() => {
-    if (!premiumLoading && !authLoading && isPremium && user) {
-      navigate('/premium');
-    }
-  }, [isPremium, premiumLoading, authLoading, user, navigate]);
 
   const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
 
@@ -331,22 +322,6 @@ const Index = () => {
                 Experimentar Premium
               </Button>
             </div>
-          </div>
-        )}
-
-        {/* Footer Upgrade para usuários MVP */}
-        {!isPremium && !premiumLoading && (
-          <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 text-center">
-            <p className="text-sm text-muted-foreground mb-3">
-              Quer projeções de ganho futuro e histórico completo?
-            </p>
-            <Button
-              onClick={() => navigate('/premium-info')}
-              className="bg-amber-600 hover:bg-amber-700 text-white h-12"
-            >
-              <Crown className="w-4 h-4 mr-2" />
-              Conhecer Premium
-            </Button>
           </div>
         )}
       </div>

@@ -26,7 +26,6 @@ const Premium = () => {
   const [ganhoPesoEsperado, setGanhoPesoEsperado] = useState('');
   const [diasAdicionais, setDiasAdicionais] = useState('');
   const [identificacao, setIdentificacao] = useState('');
-  const [medicamentos, setMedicamentos] = useState('');
   
   const [resultado, setResultado] = useState<ResultData | null>(null);
   const [dadosSimulacao, setDadosSimulacao] = useState<SimulationData | null>(null);
@@ -106,8 +105,7 @@ const Premium = () => {
       custo: parseFloat(custo),
       precoVenda: parseFloat(precoVenda),
       ganhoPesoEsperado: parseFloat(ganhoPesoEsperado),
-      diasAdicionais: parseInt(diasAdicionais),
-      medicamentos: medicamentos ? parseFloat(medicamentos) : 0
+      diasAdicionais: parseInt(diasAdicionais)
     };
     
     const result = calcularProjecao(data);
@@ -125,7 +123,6 @@ const Premium = () => {
     setGanhoPesoEsperado('');
     setDiasAdicionais('');
     setIdentificacao('');
-    setMedicamentos('');
     setResultado(null);
     setDadosSimulacao(null);
     setSalvo(false);
@@ -312,22 +309,6 @@ Gerado por Ponto do Cordeiro Premium`;
             onChange={handleInputChange(setCusto)}
             className="input-field"
           />
-        </div>
-
-        <div>
-          <label htmlFor="medicamentos" className="text-label">Medicamentos/Outros (R$)</label>
-          <input
-            id="medicamentos"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0"
-            placeholder="Ex: 15.00"
-            value={medicamentos}
-            onChange={handleInputChange(setMedicamentos)}
-            className="input-field"
-          />
-          <span className="text-xs text-muted-foreground mt-1 block">Opcional - custos extras por animal</span>
         </div>
 
         <div>
