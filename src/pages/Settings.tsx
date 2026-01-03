@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { obterHistorico, limparHistorico, verificarPremium, desativarPremium } from "@/lib/storage";
+import { usePremium } from "@/hooks/usePremium";
+import { obterHistorico, limparHistorico, desativarPremium } from "@/lib/storage";
 import { obterAlertas, deletarAlerta } from "@/lib/alertas";
 import { gerarPDFHistorico, gerarPDFAnalises } from "@/lib/pdf";
 import {
@@ -82,17 +83,28 @@ function calcularTamanhoStorage(): string {
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isPremium, loading: premiumLoading } = usePremium();
 
   const [alertasAtivados, setAlertasAtivados] = useState(true);
   const [notificacoesGerais, setNotificacoesGerais] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
   const [numSimulacoes, setNumSimulacoes] = useState(0);
   const [numAlertas, setNumAlertas] = useState(0);
   const [espacoUsado, setEspacoUsado] = useState('0 KB');
   const [limpando, setLimpando] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [dialogRelatorioAberto, setDialogRelatorioAberto] = useState(false);
+
+  // Verificar acesso Premium e autenticação
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+      return;
+    }
+    if (!premiumLoading && !isPremium) {
+      navigate('/');
+    }
+  }, [navigate, user, authLoading, isPremium, premiumLoading]);
 
   useEffect(() => {
     // Carregar configurações
@@ -101,7 +113,6 @@ const Settings = () => {
     
     setAlertasAtivados(alertas !== 'false');
     setNotificacoesGerais(notifs !== 'false');
-    setIsPremium(verificarPremium());
     setEspacoUsado(calcularTamanhoStorage());
     
     // Carregar estatísticas
@@ -227,6 +238,20 @@ const Settings = () => {
 
   function abrirLink(url: string) {
     window.open(url, '_blank');
+  }
+
+  // Mostrar loading enquanto verifica acesso
+  if (premiumLoading || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Se não for premium ou não autenticado, não renderiza (será redirecionado)
+  if (!user || !isPremium) {
+    return null;
   }
 
   return (
