@@ -19,7 +19,7 @@ const Index = () => {
   // Redirecionar usuários Premium para /premium
   useEffect(() => {
     if (!premiumLoading && !authLoading && isPremium && user) {
-      navigate('/premium', { replace: true });
+      navigate("/premium", { replace: true });
     }
   }, [isPremium, premiumLoading, authLoading, user, navigate]);
   const [peso, setPeso] = useState("");
@@ -54,14 +54,14 @@ const Index = () => {
       toast({
         title: "⚠️ Dados inválidos",
         description: erro,
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setIsCalculating(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 300));
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     const result = calcularDecisao({
       peso: parseFloat(peso),
@@ -75,8 +75,8 @@ const Index = () => {
 
   const handleCompartilharWhatsApp = () => {
     if (!resultado) return;
-    
-    const mensagem = gerarTextoCompartilhamento('simulacao', {
+
+    const mensagem = gerarTextoCompartilhamento("simulacao", {
       dados: {
         peso: parseFloat(peso),
         dias: parseInt(dias),
@@ -84,9 +84,9 @@ const Index = () => {
         precoVenda: parseFloat(precoVenda),
       },
       resultado,
-      identificacao: undefined
+      identificacao: undefined,
     });
-    
+
     compartilharWhatsApp(mensagem);
     toast({ title: "✅ Abrindo WhatsApp..." });
   };
@@ -99,10 +99,7 @@ const Index = () => {
     setResultado(null);
   };
 
-  const handleInputChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    value: string
-  ) => {
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
     setter(value);
     setResultado(null);
   };
@@ -130,7 +127,7 @@ const Index = () => {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate("/auth")}
               className="flex items-center gap-2 h-12"
               aria-label="Entrar na conta"
             >
@@ -139,220 +136,206 @@ const Index = () => {
             </Button>
           </div>
 
-        {/* Título */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Ponto do Cordeiro</h1>
-          <p className="text-muted-foreground text-base">
-            Decisão inteligente em 60 segundos
-          </p>
-        </div>
-
-        {/* Formulário */}
-        <div className="space-y-4">
-          {/* Peso do cordeiro */}
-          <div className="space-y-2">
-            <Label htmlFor="peso" className="text-foreground text-base">
-              Peso do cordeiro (kg)
-            </Label>
-            <Input
-              id="peso"
-              type="number"
-              step="0.1"
-              min="0"
-              placeholder="Ex: 35.5"
-              autoFocus
-              inputMode="decimal"
-              className="h-14 text-lg border-2"
-              value={peso}
-              onChange={(e) => handleInputChange(setPeso, e.target.value)}
-              aria-describedby="peso-desc"
-            />
+          {/* Título */}
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold text-foreground">Ponto do Cordeiro</h1>
+            <p className="text-muted-foreground text-base">Decisão inteligente em 60 segundos</p>
           </div>
 
-          {/* Dias em cativeiro */}
-          <div className="space-y-2">
-            <Label htmlFor="dias" className="text-foreground text-base">
-              Dias em cativeiro
-            </Label>
-            <Input
-              id="dias"
-              type="number"
-              min="0"
-              placeholder="Ex: 45"
-              inputMode="decimal"
-              className="h-14 text-lg border-2"
-              value={dias}
-              onChange={(e) => handleInputChange(setDias, e.target.value)}
-            />
-          </div>
-
-          {/* Custo diário */}
-          <div className="space-y-2">
-            <Label htmlFor="custo" className="text-foreground text-base">
-              Custo diário (R$/dia)
-            </Label>
-            <Input
-              id="custo"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Ex: 3.50"
-              inputMode="decimal"
-              className="h-14 text-lg border-2"
-              value={custo}
-              onChange={(e) => handleInputChange(setCusto, e.target.value)}
-            />
-          </div>
-
-          {/* Preço de venda */}
-          <div className="space-y-2">
-            <Label htmlFor="precoVenda" className="text-foreground text-base">
-              Preço de venda (R$/kg)
-            </Label>
-            <Input
-              id="precoVenda"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Ex: 18.50"
-              inputMode="decimal"
-              className="h-14 text-lg border-2"
-              value={precoVenda}
-              onChange={(e) => handleInputChange(setPrecoVenda, e.target.value)}
-            />
-          </div>
-
-          {/* Botão Calcular */}
-          <Button
-            variant="default"
-            className="w-full h-14 text-lg bg-positive hover:bg-positive-hover"
-            disabled={!isFormValid || isCalculating}
-            onClick={handleCalcular}
-            aria-label="Calcular decisão de venda"
-          >
-            {isCalculating ? (
-              <>
-                <Loader2 className="animate-spin mr-2" aria-hidden="true" />
-                <span role="status">Calculando...</span>
-              </>
-            ) : (
-              "Calcular agora"
-            )}
-          </Button>
-        </div>
-
-        {/* Card de Resultado */}
-        {resultado && (
-          <div
-            className={`mt-8 p-6 rounded-lg border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 ${
-              resultado.decisao === "vender"
-                ? "border-positive bg-green-50"
-                : "border-destructive bg-red-50"
-            }`}
-            role="region"
-            aria-label="Resultado da simulação"
-          >
-            <div className="flex flex-col items-center text-center">
-              {resultado.decisao === "vender" ? (
-                <TrendingUp className="w-12 h-12 text-positive" aria-hidden="true" />
-              ) : (
-                <TrendingDown className="w-12 h-12 text-destructive" aria-hidden="true" />
-              )}
-
-              <p
-                className={`text-3xl font-bold mt-4 ${
-                  resultado.decisao === "vender"
-                    ? "text-green-700"
-                    : "text-red-700"
-                }`}
-              >
-                {resultado.decisao === "vender"
-                  ? "💰 Vale a pena vender"
-                  : "⏳ Melhor segurar e engordar mais"}
-              </p>
-
-              {/* Lucro em destaque */}
-              <p
-                className={`text-2xl font-bold mt-4 ${
-                  resultado.lucroAtual >= 0 ? "text-positive" : "text-destructive"
-                }`}
-              >
-                Lucro hoje: R$ {resultado.lucroAtual.toFixed(2)}
-              </p>
-
-              {/* Informações secundárias */}
-              <div className="text-base text-muted-foreground mt-4 space-y-2 w-full text-left">
-                <p>Receita: R$ {resultado.receitaAtual.toFixed(2)}</p>
-                <p>Custo total: R$ {resultado.custoTotal.toFixed(2)}</p>
-                <p>Custo/kg: R$ {resultado.custoKg.toFixed(2)}</p>
-                <p>Peso atual: {peso} kg</p>
-                
-                <hr className="my-3 border-border" />
-                
-                <p className="text-sm">
-                  Simulado em:{" "}
-                  {new Date(resultado.timestamp).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
-                </p>
-              </div>
-
-              {/* Botão WhatsApp */}
-              <Button
-                variant="outline"
-                className="mt-6 w-full h-14 border-2 border-positive text-positive hover:bg-green-50"
-                onClick={handleCompartilharWhatsApp}
-                aria-label="Enviar resultado para WhatsApp"
-              >
-                <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
-                Enviar resultado para WhatsApp
-              </Button>
-
-              <Button
-                variant="outline"
-                className="mt-3 w-full h-12 border-2"
-                onClick={handleNovaSimulacao}
-              >
-                Nova simulação
-              </Button>
+          {/* Formulário */}
+          <div className="space-y-4">
+            {/* Peso do cordeiro */}
+            <div className="space-y-2">
+              <Label htmlFor="peso" className="text-foreground text-base">
+                Peso do cordeiro (kg)
+              </Label>
+              <Input
+                id="peso"
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="Ex: 35.5"
+                autoFocus
+                inputMode="decimal"
+                className="h-14 text-lg border-2"
+                value={peso}
+                onChange={(e) => handleInputChange(setPeso, e.target.value)}
+                aria-describedby="peso-desc"
+              />
             </div>
 
-            {/* Oferta Premium */}
-            <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-              <div className="flex items-start gap-3">
-                <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-1" aria-hidden="true" />
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-foreground">
-                    Recursos Premium
-                  </h3>
-                  <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                    <li>• Simular ganho de peso futuro</li>
-                    <li>• Comparar lucro hoje vs daqui X dias</li>
-                    <li>• Salvar simulações com identificação</li>
-                    <li>• Histórico completo com filtros</li>
-                    <li>• Alertas e lembretes</li>
-                    <li>• Gráficos de evolução</li>
-                    <li>• Compartilhar via Telegram, Email e mais</li>
-                  </ul>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    💡 Ajuda você a decidir o melhor momento de venda
+            {/* Dias em cativeiro */}
+            <div className="space-y-2">
+              <Label htmlFor="dias" className="text-foreground text-base">
+                Dias em cativeiro
+              </Label>
+              <Input
+                id="dias"
+                type="number"
+                min="0"
+                placeholder="Ex: 45"
+                inputMode="decimal"
+                className="h-14 text-lg border-2"
+                value={dias}
+                onChange={(e) => handleInputChange(setDias, e.target.value)}
+              />
+            </div>
+
+            {/* Custo diário */}
+            <div className="space-y-2">
+              <Label htmlFor="custo" className="text-foreground text-base">
+                Custo diário (R$/dia)
+              </Label>
+              <Input
+                id="custo"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 3.50"
+                inputMode="decimal"
+                className="h-14 text-lg border-2"
+                value={custo}
+                onChange={(e) => handleInputChange(setCusto, e.target.value)}
+              />
+            </div>
+
+            {/* Preço de venda */}
+            <div className="space-y-2">
+              <Label htmlFor="precoVenda" className="text-foreground text-base">
+                Preço de venda (R$/kg)
+              </Label>
+              <Input
+                id="precoVenda"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 18.50"
+                inputMode="decimal"
+                className="h-14 text-lg border-2"
+                value={precoVenda}
+                onChange={(e) => handleInputChange(setPrecoVenda, e.target.value)}
+              />
+            </div>
+
+            {/* Botão Calcular */}
+            <Button
+              variant="default"
+              className="w-full h-14 text-lg bg-positive hover:bg-positive-hover"
+              disabled={!isFormValid || isCalculating}
+              onClick={handleCalcular}
+              aria-label="Calcular decisão de venda"
+            >
+              {isCalculating ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" aria-hidden="true" />
+                  <span role="status">Calculando...</span>
+                </>
+              ) : (
+                "Calcular agora"
+              )}
+            </Button>
+          </div>
+
+          {/* Card de Resultado */}
+          {resultado && (
+            <div
+              className={`mt-8 p-6 rounded-lg border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 ${
+                resultado.decisao === "vender" ? "border-positive bg-green-50" : "border-destructive bg-red-50"
+              }`}
+              role="region"
+              aria-label="Resultado da simulação"
+            >
+              <div className="flex flex-col items-center text-center">
+                {resultado.decisao === "vender" ? (
+                  <TrendingUp className="w-12 h-12 text-positive" aria-hidden="true" />
+                ) : (
+                  <TrendingDown className="w-12 h-12 text-destructive" aria-hidden="true" />
+                )}
+
+                <p
+                  className={`text-3xl font-bold mt-4 ${
+                    resultado.decisao === "vender" ? "text-green-700" : "text-red-700"
+                  }`}
+                >
+                  {resultado.decisao === "vender" ? "💰 Vale a pena vender" : "⏳ Melhor segurar e engordar mais"}
+                </p>
+
+                {/* Lucro em destaque */}
+                <p
+                  className={`text-2xl font-bold mt-4 ${
+                    resultado.lucroAtual >= 0 ? "text-positive" : "text-destructive"
+                  }`}
+                >
+                  Lucro hoje: R$ {resultado.lucroAtual.toFixed(2)}
+                </p>
+
+                {/* Informações secundárias */}
+                <div className="text-base text-muted-foreground mt-4 space-y-2 w-full text-left">
+                  <p>Receita: R$ {resultado.receitaAtual.toFixed(2)}</p>
+                  <p>Custo total: R$ {resultado.custoTotal.toFixed(2)}</p>
+                  <p>Custo/kg: R$ {resultado.custoKg.toFixed(2)}</p>
+                  <p>Peso atual: {peso} kg</p>
+
+                  <hr className="my-3 border-border" />
+
+                  <p className="text-sm">
+                    Simulado em:{" "}
+                    {new Date(resultado.timestamp).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
                   </p>
                 </div>
+
+                {/* Botão WhatsApp */}
+                <Button
+                  variant="outline"
+                  className="mt-6 w-full h-14 border-2 border-positive text-positive hover:bg-green-50"
+                  onClick={handleCompartilharWhatsApp}
+                  aria-label="Enviar resultado para WhatsApp"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
+                  Enviar resultado para WhatsApp
+                </Button>
+
+                <Button variant="outline" className="mt-3 w-full h-12 border-2" onClick={handleNovaSimulacao}>
+                  Nova simulação
+                </Button>
               </div>
-              <Button
-                onClick={() => navigate('/premium-info')}
-                className="w-full mt-4 h-12 bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                Experimentar Premium
-              </Button>
+
+              {/* Oferta Premium */}
+              <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                <div className="flex items-start gap-3">
+                  <Crown className="text-amber-600 w-6 h-6 flex-shrink-0 mt-1" aria-hidden="true" />
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold text-foreground">Recursos Premium</h3>
+                    <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                      <li>• Simular ganho de peso futuro</li>
+                      <li>• Comparar lucro hoje vs daqui X dias</li>
+                      <li>• Salvar simulações com identificação</li>
+                      <li>• Histórico completo com filtros</li>
+                      <li>• Alertas e lembretes</li>
+                      <li>• Gráficos de evolução</li>
+                      <li>• Compartilhar via Telegram, Email e mais</li>
+                    </ul>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      💡 Ajuda você a decidir o melhor momento de venda
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => navigate("/premium-info")}
+                  className="w-full mt-4 h-12 bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  Experimentar Premium
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
 
       {/* Footer - Upgrade Premium */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4 shadow-lg z-50">
+      <footer className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-amber-600 to-orange-700 text-white py-3 px-4 shadow-lg z-50">
         <button
-          onClick={() => navigate('/premium-info')}
+          onClick={() => navigate("/premium-info")}
           className="w-full flex items-center justify-center gap-2 text-base font-semibold"
         >
           <Crown className="w-5 h-5" />
