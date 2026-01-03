@@ -10,6 +10,35 @@ import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/use-toast";
 import { gerarTextoCompartilhamento, compartilharWhatsApp } from "@/lib/share";
 
+const LIMITE_CONSULTAS_DIARIAS = 5;
+const STORAGE_KEY = "mvp_consultas";
+
+interface ConsultasDiarias {
+  data: string;
+  count: number;
+}
+
+const getConsultasDiarias = (): ConsultasDiarias => {
+  const hoje = new Date().toISOString().split("T")[0];
+  const stored = localStorage.getItem(STORAGE_KEY);
+  
+  if (stored) {
+    const parsed: ConsultasDiarias = JSON.parse(stored);
+    if (parsed.data === hoje) {
+      return parsed;
+    }
+  }
+  
+  return { data: hoje, count: 0 };
+};
+
+const incrementarConsultas = (): number => {
+  const consultas = getConsultasDiarias();
+  consultas.count += 1;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
+  return consultas.count;
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -22,12 +51,17 @@ const Index = () => {
       navigate("/premium", { replace: true });
     }
   }, [isPremium, premiumLoading, authLoading, user, navigate]);
+
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [resultado, setResultado] = useState<ResultData | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [consultasRestantes, setConsultasRestantes] = useState(() => {
+    const consultas = getConsultasDiarias();
+    return LIMITE_CONSULTAS_DIARIAS - consultas.count;
+  });
 
   const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
 
@@ -49,6 +83,18 @@ const Index = () => {
   };
 
   const handleCalcular = async () => {
+    // Verificar limite de consultas
+    const consultas = getConsultasDiarias();
+    if (consultas.count >= LIMITE_CONSULTAS_DIARIAS) {
+      toast({
+        title: "🔒 Limite diário atingido",
+        description: "Você atingiu o limite de 5 consultas gratuitas por dia. Acesse o Premium para consultas ilimitadas!",
+        variant: "destructive",
+      });
+      navigate("/premium-info");
+      return;
+    }
+
     const erro = validarCampos();
     if (erro) {
       toast({
@@ -69,6 +115,11 @@ const Index = () => {
       custo: parseFloat(custo),
       precoVenda: parseFloat(precoVenda),
     });
+    
+    // Incrementar contador e atualizar restantes
+    const novoCount = incrementarConsultas();
+    setConsultasRestantes(LIMITE_CONSULTAS_DIARIAS - novoCount);
+    
     setResultado(result);
     setIsCalculating(false);
   };
@@ -234,6 +285,24 @@ const Index = () => {
                 "Calcular agora"
               )}
             </Button>
+
+            {/* Contador de consultas e CTA simples antes do resultado */}
+            {!resultado && (
+              <div className="text-center space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {consultasRestantes > 0 
+                    ? `${consultasRestantes} consulta${consultasRestantes !== 1 ? 's' : ''} gratuita${consultasRestantes !== 1 ? 's' : ''} restante${consultasRestantes !== 1 ? 's' : ''} hoje`
+                    : "Limite de consultas atingido"
+                  }
+                </p>
+                <button
+                  onClick={() => navigate("/premium-info")}
+                  className="text-amber-600 hover:text-amber-700 text-sm font-medium underline underline-offset-2"
+                >
+                  Quer consultas ilimitadas? Conheça o Premium
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Card de Resultado */}
@@ -298,19 +367,37 @@ const Index = () => {
                 <Button variant="outline" className="mt-3 w-full h-12 border-2" onClick={handleNovaSimulacao}>
                   Nova simulação
                 </Button>
-            </div>
+              </div>
             </div>
           )}
 
-          {/* CTA Premium - Aparece após resultado */}
+          {/* CTA Premium Completo - Aparece após resultado */}
           {resultado && (
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
               <p className="text-base font-semibold text-gray-900 text-center">
                 Quer saber se vale mais segurar e engordar?
               </p>
+              <ul className="text-sm text-gray-700 mt-3 space-y-1.5 pl-1">
+                <li className="flex items-start gap-2">
+                  <Crown className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span>Simular ganho de peso futuro</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Crown className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span>Comparar lucro hoje vs daqui X dias</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Crown className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span>Histórico completo + alertas</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Crown className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span>Consultas ilimitadas</span>
+                </li>
+              </ul>
               <Button
                 onClick={() => navigate("/premium-info")}
-                className="mt-3 w-full h-14 bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                className="mt-4 w-full h-14 bg-amber-600 hover:bg-amber-700 text-white font-bold"
               >
                 Ver Premium
               </Button>
