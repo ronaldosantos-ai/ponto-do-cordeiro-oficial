@@ -9,49 +9,54 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/use-toast";
 import { gerarTextoCompartilhamento, compartilharWhatsApp } from "@/lib/share";
-
 const LIMITE_CONSULTAS_DIARIAS = 5;
 const STORAGE_KEY = "mvp_consultas";
-
 interface ConsultasDiarias {
   data: string;
   count: number;
 }
-
 const getConsultasDiarias = (): ConsultasDiarias => {
   const hoje = new Date().toISOString().split("T")[0];
   const stored = localStorage.getItem(STORAGE_KEY);
-  
   if (stored) {
     const parsed: ConsultasDiarias = JSON.parse(stored);
     if (parsed.data === hoje) {
       return parsed;
     }
   }
-  
-  return { data: hoje, count: 0 };
+  return {
+    data: hoje,
+    count: 0
+  };
 };
-
 const incrementarConsultas = (): number => {
   const consultas = getConsultasDiarias();
   consultas.count += 1;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
   return consultas.count;
 };
-
 const Index = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { isPremium, loading: premiumLoading } = usePremium();
-  const { toast } = useToast();
+  const {
+    user,
+    loading: authLoading
+  } = useAuth();
+  const {
+    isPremium,
+    loading: premiumLoading
+  } = usePremium();
+  const {
+    toast
+  } = useToast();
 
   // Redirecionar usuários Premium para /premium
   useEffect(() => {
     if (!premiumLoading && !authLoading && isPremium && user) {
-      navigate("/premium", { replace: true });
+      navigate("/premium", {
+        replace: true
+      });
     }
   }, [isPremium, premiumLoading, authLoading, user, navigate]);
-
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
@@ -62,7 +67,6 @@ const Index = () => {
     const consultas = getConsultasDiarias();
     return LIMITE_CONSULTAS_DIARIAS - consultas.count;
   });
-
   const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
 
   // Validação de campos
@@ -81,7 +85,6 @@ const Index = () => {
     }
     return null;
   };
-
   const handleCalcular = async () => {
     // Verificar limite de consultas
     const consultas = getConsultasDiarias();
@@ -89,59 +92,52 @@ const Index = () => {
       toast({
         title: "🔒 Limite diário atingido",
         description: "Você atingiu o limite de 5 consultas gratuitas por dia. Acesse o Premium para consultas ilimitadas!",
-        variant: "destructive",
+        variant: "destructive"
       });
       navigate("/premium-info");
       return;
     }
-
     const erro = validarCampos();
     if (erro) {
       toast({
         title: "⚠️ Dados inválidos",
         description: erro,
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setIsCalculating(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
+    await new Promise(resolve => setTimeout(resolve, 300));
     const result = calcularDecisao({
       peso: parseFloat(peso),
       dias: parseInt(dias),
       custo: parseFloat(custo),
-      precoVenda: parseFloat(precoVenda),
+      precoVenda: parseFloat(precoVenda)
     });
-    
+
     // Incrementar contador e atualizar restantes
     const novoCount = incrementarConsultas();
     setConsultasRestantes(LIMITE_CONSULTAS_DIARIAS - novoCount);
-    
     setResultado(result);
     setIsCalculating(false);
   };
-
   const handleCompartilharWhatsApp = () => {
     if (!resultado) return;
-
     const mensagem = gerarTextoCompartilhamento("simulacao", {
       dados: {
         peso: parseFloat(peso),
         dias: parseInt(dias),
         custo: parseFloat(custo),
-        precoVenda: parseFloat(precoVenda),
+        precoVenda: parseFloat(precoVenda)
       },
       resultado,
-      identificacao: undefined,
+      identificacao: undefined
     });
-
     compartilharWhatsApp(mensagem);
-    toast({ title: "✅ Abrindo WhatsApp..." });
+    toast({
+      title: "✅ Abrindo WhatsApp..."
+    });
   };
-
   const handleNovaSimulacao = () => {
     setPeso("");
     setDias("");
@@ -149,7 +145,6 @@ const Index = () => {
     setPrecoVenda("");
     setResultado(null);
   };
-
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
     setter(value);
     setResultado(null);
@@ -157,31 +152,21 @@ const Index = () => {
 
   // Mostrar loading enquanto verifica premium
   if (premiumLoading || authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
+    return <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>;
   }
 
   // Se for premium, não renderizar (será redirecionado)
   if (isPremium && user) {
     return null;
   }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex items-center justify-center px-4 py-6 pb-24">
         <div className="w-full max-w-md md:max-w-sm lg:max-w-md mx-auto space-y-6">
           {/* Header com Login */}
           <div className="flex justify-end">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="flex items-center gap-2 h-12"
-              aria-label="Entrar na conta"
-            >
+            <Button variant="outline" size="lg" onClick={() => navigate("/auth")} className="flex items-center gap-2 h-12" aria-label="Entrar na conta">
               <LogIn className="w-4 h-4" />
               Entrar
             </Button>
@@ -200,19 +185,7 @@ const Index = () => {
               <Label htmlFor="peso" className="text-foreground text-base">
                 Peso do cordeiro (kg)
               </Label>
-              <Input
-                id="peso"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="Ex: 35.5"
-                autoFocus
-                inputMode="decimal"
-                className="h-14 text-lg border-2"
-                value={peso}
-                onChange={(e) => handleInputChange(setPeso, e.target.value)}
-                aria-describedby="peso-desc"
-              />
+              <Input id="peso" type="number" step="0.1" min="0" placeholder="Ex: 35.5" autoFocus inputMode="decimal" className="h-14 text-lg border-2" value={peso} onChange={e => handleInputChange(setPeso, e.target.value)} aria-describedby="peso-desc" />
             </div>
 
             {/* Dias em cativeiro */}
@@ -220,16 +193,7 @@ const Index = () => {
               <Label htmlFor="dias" className="text-foreground text-base">
                 Dias em cativeiro
               </Label>
-              <Input
-                id="dias"
-                type="number"
-                min="0"
-                placeholder="Ex: 45"
-                inputMode="decimal"
-                className="h-14 text-lg border-2"
-                value={dias}
-                onChange={(e) => handleInputChange(setDias, e.target.value)}
-              />
+              <Input id="dias" type="number" min="0" placeholder="Ex: 45" inputMode="decimal" className="h-14 text-lg border-2" value={dias} onChange={e => handleInputChange(setDias, e.target.value)} />
             </div>
 
             {/* Custo diário */}
@@ -237,17 +201,7 @@ const Index = () => {
               <Label htmlFor="custo" className="text-foreground text-base">
                 Custo diário (R$/dia)
               </Label>
-              <Input
-                id="custo"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Ex: 3.50"
-                inputMode="decimal"
-                className="h-14 text-lg border-2"
-                value={custo}
-                onChange={(e) => handleInputChange(setCusto, e.target.value)}
-              />
+              <Input id="custo" type="number" step="0.01" min="0" placeholder="Ex: 3.50" inputMode="decimal" className="h-14 text-lg border-2" value={custo} onChange={e => handleInputChange(setCusto, e.target.value)} />
             </div>
 
             {/* Preço de venda */}
@@ -255,86 +209,39 @@ const Index = () => {
               <Label htmlFor="precoVenda" className="text-foreground text-base">
                 Preço de venda (R$/kg)
               </Label>
-              <Input
-                id="precoVenda"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Ex: 18.50"
-                inputMode="decimal"
-                className="h-14 text-lg border-2"
-                value={precoVenda}
-                onChange={(e) => handleInputChange(setPrecoVenda, e.target.value)}
-              />
+              <Input id="precoVenda" type="number" step="0.01" min="0" placeholder="Ex: 18.50" inputMode="decimal" className="h-14 text-lg border-2" value={precoVenda} onChange={e => handleInputChange(setPrecoVenda, e.target.value)} />
             </div>
 
             {/* Botão Calcular */}
-            <Button
-              variant="default"
-              className="w-full h-14 text-lg bg-positive hover:bg-positive-hover"
-              disabled={!isFormValid || isCalculating}
-              onClick={handleCalcular}
-              aria-label="Calcular decisão de venda"
-            >
-              {isCalculating ? (
-                <>
+            <Button variant="default" className="w-full h-14 text-lg bg-positive hover:bg-positive-hover" disabled={!isFormValid || isCalculating} onClick={handleCalcular} aria-label="Calcular decisão de venda">
+              {isCalculating ? <>
                   <Loader2 className="animate-spin mr-2" aria-hidden="true" />
                   <span role="status">Calculando...</span>
-                </>
-              ) : (
-                "Calcular agora"
-              )}
+                </> : "Calcular agora"}
             </Button>
 
             {/* Contador de consultas e CTA simples antes do resultado */}
-            {!resultado && (
-              <div className="text-center space-y-2">
+            {!resultado && <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  {consultasRestantes > 0 
-                    ? `${consultasRestantes} consulta${consultasRestantes !== 1 ? 's' : ''} gratuita${consultasRestantes !== 1 ? 's' : ''} restante${consultasRestantes !== 1 ? 's' : ''} hoje`
-                    : "Limite de consultas atingido"
-                  }
+                  {consultasRestantes > 0 ? `${consultasRestantes} consulta${consultasRestantes !== 1 ? 's' : ''} gratuita${consultasRestantes !== 1 ? 's' : ''} restante${consultasRestantes !== 1 ? 's' : ''} hoje` : "Limite de consultas atingido"}
                 </p>
-                <button
-                  onClick={() => navigate("/premium-info")}
-                  className="text-amber-600 hover:text-amber-700 text-sm font-medium underline underline-offset-2 inline-flex items-center gap-1"
-                >
+                <button onClick={() => navigate("/premium-info")} className="text-amber-600 hover:text-amber-700 text-sm font-medium underline underline-offset-2 inline-flex items-center gap-1">
                   Quer consultas ilimitadas? Conheça o Premium <Crown className="w-3.5 h-3.5" />
                 </button>
-              </div>
-            )}
+              </div>}
           </div>
 
           {/* Card de Resultado */}
-          {resultado && (
-            <div
-              className={`mt-8 p-6 rounded-lg border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 ${
-                resultado.decisao === "vender" ? "border-positive bg-green-50" : "border-destructive bg-red-50"
-              }`}
-              role="region"
-              aria-label="Resultado da simulação"
-            >
+          {resultado && <div className={`mt-8 p-6 rounded-lg border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 ${resultado.decisao === "vender" ? "border-positive bg-green-50" : "border-destructive bg-red-50"}`} role="region" aria-label="Resultado da simulação">
               <div className="flex flex-col items-center text-center">
-                {resultado.decisao === "vender" ? (
-                  <TrendingUp className="w-12 h-12 text-positive" aria-hidden="true" />
-                ) : (
-                  <TrendingDown className="w-12 h-12 text-destructive" aria-hidden="true" />
-                )}
+                {resultado.decisao === "vender" ? <TrendingUp className="w-12 h-12 text-positive" aria-hidden="true" /> : <TrendingDown className="w-12 h-12 text-destructive" aria-hidden="true" />}
 
-                <p
-                  className={`text-3xl font-bold mt-4 ${
-                    resultado.decisao === "vender" ? "text-green-700" : "text-red-700"
-                  }`}
-                >
+                <p className={`text-3xl font-bold mt-4 ${resultado.decisao === "vender" ? "text-green-700" : "text-red-700"}`}>
                   {resultado.decisao === "vender" ? "💰 Vale a pena vender" : "⏳ Melhor segurar e engordar mais"}
                 </p>
 
                 {/* Lucro em destaque */}
-                <p
-                  className={`text-2xl font-bold mt-4 ${
-                    resultado.lucroAtual >= 0 ? "text-positive" : "text-destructive"
-                  }`}
-                >
+                <p className={`text-2xl font-bold mt-4 ${resultado.lucroAtual >= 0 ? "text-positive" : "text-destructive"}`}>
                   Lucro hoje: R$ {resultado.lucroAtual.toFixed(2)}
                 </p>
 
@@ -349,17 +256,14 @@ const Index = () => {
 
                   <p className="text-sm">
                     Simulado em:{" "}
-                    {new Date(resultado.timestamp).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                    {new Date(resultado.timestamp).toLocaleString("pt-BR", {
+                  timeZone: "America/Sao_Paulo"
+                })}
                   </p>
                 </div>
 
                 {/* Botão WhatsApp */}
-                <Button
-                  variant="outline"
-                  className="mt-6 w-full h-14 border-2 border-positive text-positive hover:bg-green-50"
-                  onClick={handleCompartilharWhatsApp}
-                  aria-label="Enviar resultado para WhatsApp"
-                >
+                <Button variant="outline" className="mt-6 w-full h-14 border-2 border-positive text-positive hover:bg-green-50" onClick={handleCompartilharWhatsApp} aria-label="Enviar resultado para WhatsApp">
                   <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                   Enviar resultado para WhatsApp
                 </Button>
@@ -368,12 +272,10 @@ const Index = () => {
                   Nova simulação
                 </Button>
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* CTA Premium Completo - Aparece após resultado */}
-          {resultado && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+          {resultado && <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
               <p className="text-base font-semibold text-gray-900 text-center">
                 Quer saber se vale mais segurar e engordar?
               </p>
@@ -395,31 +297,17 @@ const Index = () => {
                   <span>Consultas ilimitadas</span>
                 </li>
               </ul>
-              <Button
-                onClick={() => navigate("/premium-info")}
-                className="mt-4 w-full h-14 bg-amber-600 hover:bg-amber-700 text-white font-bold"
-              >
+              <Button onClick={() => navigate("/premium-info")} className="mt-4 w-full h-14 bg-amber-600 hover:bg-amber-700 text-white font-bold">
                 Ver Premium
               </Button>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
 
       {/* Footer - Upgrade Premium */}
       <footer className="fixed bottom-0 left-0 right-0 bg-muted/80 backdrop-blur-sm border-t border-border py-3 px-4 z-50">
-        <p className="text-center text-sm text-muted-foreground">
-          Quer mais recursos?{" "}
-          <button
-            onClick={() => navigate("/premium-info")}
-            className="text-amber-600 hover:text-amber-700 font-medium underline underline-offset-2 inline-flex items-center gap-1"
-          >
-            Conheça o Premium <Crown className="w-3.5 h-3.5" />
-          </button>
-        </p>
+        
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
