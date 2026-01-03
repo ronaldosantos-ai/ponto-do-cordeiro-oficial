@@ -1,6 +1,6 @@
 import { Home, History, Bell, Settings, BarChart3 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { verificarPremium } from '@/lib/storage';
+import { usePremium } from '@/hooks/usePremium';
 
 const items = [
   { path: '/premium', icon: Home, label: 'Início' },
@@ -10,12 +10,19 @@ const items = [
   { path: '/settings', icon: Settings, label: 'Config' }
 ];
 
+// Rotas onde o BottomNav deve aparecer (apenas para Premium)
+const premiumRoutes = ['/premium', '/historico', '/graficos', '/alertas', '/settings'];
+
 export function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isPremium = verificarPremium();
+  const { isPremium, loading } = usePremium();
   
-  if (!isPremium) return null;
+  // Não mostrar enquanto carrega ou se não for premium
+  if (loading || !isPremium) return null;
+  
+  // Só mostrar nas rotas premium
+  if (!premiumRoutes.includes(location.pathname)) return null;
   
   return (
     <nav 

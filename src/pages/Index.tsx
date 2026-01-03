@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,22 @@ import { Label } from "@/components/ui/label";
 import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
 import { calcularDecisao, ResultData } from "@/lib/calculations";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/use-toast";
 import { gerarTextoCompartilhamento, compartilharWhatsApp } from "@/lib/share";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isPremium, loading: premiumLoading } = usePremium();
   const { toast } = useToast();
+
+  // Redirecionar usuários Premium para /premium
+  useEffect(() => {
+    if (!premiumLoading && !authLoading && isPremium && user) {
+      navigate('/premium', { replace: true });
+    }
+  }, [isPremium, premiumLoading, authLoading, user, navigate]);
   const [peso, setPeso] = useState("");
   const [dias, setDias] = useState("");
   const [custo, setCusto] = useState("");
@@ -98,12 +107,26 @@ const Index = () => {
     setResultado(null);
   };
 
+  // Mostrar loading enquanto verifica premium
+  if (premiumLoading || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Carregando">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Se for premium, não renderizar (será redirecionado)
+  if (isPremium && user) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6 pb-24">
-      <div className="w-full max-w-md md:max-w-sm lg:max-w-md mx-auto space-y-6">
-        {/* Header com Login */}
-        <div className="flex justify-end">
-          {!user && (
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-6 pb-24">
+        <div className="w-full max-w-md md:max-w-sm lg:max-w-md mx-auto space-y-6">
+          {/* Header com Login */}
+          <div className="flex justify-end">
             <Button
               variant="outline"
               size="lg"
@@ -114,8 +137,7 @@ const Index = () => {
               <LogIn className="w-4 h-4" />
               Entrar
             </Button>
-          )}
-        </div>
+          </div>
 
         {/* Título */}
         <div className="text-center space-y-2">
@@ -324,7 +346,19 @@ const Index = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
+
+      {/* Footer - Upgrade Premium */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4 shadow-lg z-50">
+        <button
+          onClick={() => navigate('/premium-info')}
+          className="w-full flex items-center justify-center gap-2 text-base font-semibold"
+        >
+          <Crown className="w-5 h-5" />
+          Upgrade Premium
+        </button>
+      </footer>
     </div>
   );
 };

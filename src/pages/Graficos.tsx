@@ -158,12 +158,12 @@ const Graficos = () => {
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
-    if (!premiumLoading && !isPremium) {
-      navigate('/premium-info');
-      return;
-    }
     if (!authLoading && !user) {
       navigate('/auth');
+      return;
+    }
+    if (!premiumLoading && !isPremium) {
+      navigate('/');
     }
   }, [navigate, user, authLoading, isPremium, premiumLoading]);
 
