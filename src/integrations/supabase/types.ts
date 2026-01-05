@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_queries: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          query_count: number
+          query_date: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          query_count?: number
+          query_date?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          query_count?: number
+          query_date?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       historico_simulacoes: {
         Row: {
           created_at: string

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { verificarPremiumAsync, verificarPremium } from '@/lib/storage';
 
-// DEV MODE: Sempre retorna isPremium = true para acesso completo no construtor
-const DEV_MODE_PREMIUM = true;
+// DEV MODE: Desabilitado em produção para segurança
+const DEV_MODE_PREMIUM = false;
 
 export function usePremium() {
   const { user } = useAuth();
