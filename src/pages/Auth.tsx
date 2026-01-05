@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { emailSchema, passwordSchema } from '@/lib/validations';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
 
@@ -29,19 +30,31 @@ const Auth = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+  const validateEmail = (value: string): string | null => {
+    const result = emailSchema.safeParse(value);
+    if (!result.success) {
+      return result.error.errors[0]?.message || "Email inválido";
+    }
+    return null;
+  };
+
+  const validatePassword = (value: string): string | null => {
+    const result = passwordSchema.safeParse(value);
+    if (!result.success) {
+      return result.error.errors[0]?.message || "Senha inválida";
+    }
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validações
-    if (!validateEmail(email)) {
+    // Validação de email com Zod
+    const emailError = validateEmail(email);
+    if (emailError) {
       toast({
         title: "❌ Email inválido",
-        description: "Por favor, insira um email válido",
+        description: emailError,
         variant: "destructive"
       });
       return;
@@ -51,7 +64,7 @@ const Auth = () => {
     if (mode === 'forgot') {
       setLoading(true);
       try {
-        const { error } = await resetPassword(email);
+        const { error } = await resetPassword(email.trim());
         
         if (error) {
           toast({
@@ -73,10 +86,12 @@ const Auth = () => {
       return;
     }
 
-    if (password.length < 6) {
+    // Validação de senha com Zod
+    const passwordError = validatePassword(password);
+    if (passwordError) {
       toast({
-        title: "❌ Senha muito curta",
-        description: "A senha deve ter no mínimo 6 caracteres",
+        title: "❌ Senha inválida",
+        description: passwordError,
         variant: "destructive"
       });
       return;
@@ -95,7 +110,7 @@ const Auth = () => {
 
     try {
       if (mode === 'login') {
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(email.trim(), password);
         
         if (error) {
           let message = "Erro ao fazer login";
@@ -116,7 +131,7 @@ const Auth = () => {
         toast({ title: "✅ Login realizado com sucesso!" });
         navigate('/premium');
       } else {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(email.trim(), password);
         
         if (error) {
           let message = "Erro ao criar conta";

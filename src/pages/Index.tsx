@@ -9,32 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/use-toast";
 import { gerarTextoCompartilhamento, compartilharWhatsApp } from "@/lib/share";
-const LIMITE_CONSULTAS_DIARIAS = 5;
-const STORAGE_KEY = "mvp_consultas";
-interface ConsultasDiarias {
-  data: string;
-  count: number;
-}
-const getConsultasDiarias = (): ConsultasDiarias => {
-  const hoje = new Date().toISOString().split("T")[0];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    const parsed: ConsultasDiarias = JSON.parse(stored);
-    if (parsed.data === hoje) {
-      return parsed;
-    }
-  }
-  return {
-    data: hoje,
-    count: 0
-  };
-};
-const incrementarConsultas = (): number => {
-  const consultas = getConsultasDiarias();
-  consultas.count += 1;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
-  return consultas.count;
-};
+import { verificarConsultasDiarias, incrementarConsultasDiarias, LIMITE_DIARIO } from "@/lib/dailyQueries";
 const Index = () => {
   const navigate = useNavigate();
   const {
@@ -63,11 +38,23 @@ const Index = () => {
   const [precoVenda, setPrecoVenda] = useState("");
   const [resultado, setResultado] = useState<ResultData | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [consultasRestantes, setConsultasRestantes] = useState(() => {
-    const consultas = getConsultasDiarias();
-    return LIMITE_CONSULTAS_DIARIAS - consultas.count;
-  });
-  const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "";
+  const [consultasRestantes, setConsultasRestantes] = useState(LIMITE_DIARIO);
+  const [loadingQueries, setLoadingQueries] = useState(true);
+
+  // Carregar contagem de consultas do backend
+  useEffect(() => {
+    const loadQueries = async () => {
+      try {
+        const { remaining } = await verificarConsultasDiarias();
+        setConsultasRestantes(remaining);
+      } finally {
+        setLoadingQueries(false);
+      }
+    };
+    loadQueries();
+  }, []);
+
+  const isFormValid = peso !== "" && dias !== "" && custo !== "" && precoVenda !== "" && !loadingQueries;
 
   // Validação de campos
   const validarCampos = (): string | null => {
@@ -86,9 +73,10 @@ const Index = () => {
     return null;
   };
   const handleCalcular = async () => {
-    // Verificar limite de consultas
-    const consultas = getConsultasDiarias();
-    if (consultas.count >= LIMITE_CONSULTAS_DIARIAS) {
+    // Verificar limite de consultas no backend
+    const { canQuery, remaining } = await verificarConsultasDiarias();
+    
+    if (!canQuery) {
       toast({
         title: "🔒 Limite diário atingido",
         description: "Você atingiu o limite de 5 consultas gratuitas por dia. Acesse o Premium para consultas ilimitadas!",
@@ -106,6 +94,7 @@ const Index = () => {
       });
       return;
     }
+
     setIsCalculating(true);
     await new Promise(resolve => setTimeout(resolve, 300));
     const result = calcularDecisao({
@@ -115,9 +104,10 @@ const Index = () => {
       precoVenda: parseFloat(precoVenda)
     });
 
-    // Incrementar contador e atualizar restantes
-    const novoCount = incrementarConsultas();
-    setConsultasRestantes(LIMITE_CONSULTAS_DIARIAS - novoCount);
+    // Incrementar contador no backend
+    const { remaining: newRemaining } = await incrementarConsultasDiarias();
+    setConsultasRestantes(newRemaining);
+    
     setResultado(result);
     setIsCalculating(false);
   };
