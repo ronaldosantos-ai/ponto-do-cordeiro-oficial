@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { isSuperAdmin } from '@/lib/admin';
+import { checkIsAdmin } from '@/lib/admin';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -28,19 +28,19 @@ export function AdminRoute({ children }: AdminRouteProps) {
       return;
     }
 
-    const isAdmin = isSuperAdmin(user.email);
-    
-    if (!isAdmin) {
-      toast({
-        title: '⛔ Acesso negado',
-        description: 'Apenas Super Admin pode acessar esta área',
-        variant: 'destructive'
-      });
-      navigate('/');
-      return;
-    }
-
-    setIsAuthorized(true);
+    // Check admin role via database
+    checkIsAdmin(user.id).then((isAdmin) => {
+      if (!isAdmin) {
+        toast({
+          title: '⛔ Acesso negado',
+          description: 'Apenas administradores podem acessar esta área',
+          variant: 'destructive'
+        });
+        navigate('/');
+        return;
+      }
+      setIsAuthorized(true);
+    });
   }, [user, loading, navigate, toast]);
 
   if (loading || isAuthorized === null) {

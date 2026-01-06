@@ -1,9 +1,35 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Zod schema for webhook payload validation
+const webhookSchema = z.object({
+  token: z.string().min(1).max(500),
+  status: z.enum([
+    'waiting_payment',
+    'approved',
+    'paid',
+    'active',
+    'canceled',
+    'expired',
+    'refunded',
+    'chargeback'
+  ]),
+  customer: z.object({
+    email: z.string().email().max(255).transform(val => val.toLowerCase())
+  }),
+  order: z.object({
+    hash: z.string().max(100).optional()
+  }).optional(),
+  item: z.object({
+    product_name: z.string().max(255).optional(),
+    offer_name: z.string().max(255).optional()
+  }).optional()
+})
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -15,8 +41,21 @@ Deno.serve(async (req) => {
 
   try {
     // Parse request body first (token comes in body for Ticto)
-    const payload = await req.json()
-    console.log('📦 Payload recebido:', JSON.stringify(payload, null, 2))
+    const rawPayload = await req.json()
+    console.log('📦 Payload recebido')
+
+    // Validate payload structure with Zod
+    const parseResult = webhookSchema.safeParse(rawPayload)
+    
+    if (!parseResult.success) {
+      console.error('❌ Payload inválido:', parseResult.error.flatten())
+      return new Response(JSON.stringify({ error: 'Invalid payload structure' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const payload = parseResult.data
 
     // Validate webhook token from payload body
     const webhookToken = payload.token
@@ -33,24 +72,10 @@ Deno.serve(async (req) => {
 
     console.log('✅ Token validado com sucesso')
 
-    // Extract relevant data from Ticto webhook (correct structure)
+    // Extract relevant data from validated payload
     const { status, customer, order, item } = payload
-    const email = customer?.email?.toLowerCase()
+    const email = customer.email // Already validated and lowercased by Zod
     const transactionId = order?.hash
-    
-    if (!email) {
-      console.error('❌ Email não encontrado no payload')
-      return new Response(JSON.stringify({ error: 'Email required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    console.log(`📧 Email do cliente: ${email}`)
-    console.log(`📊 Status da transação: ${status}`)
-    console.log(`🏷️ Produto: ${item?.product_name}`)
-    console.log(`📋 Oferta: ${item?.offer_name}`)
-    console.log(`🔑 Transaction ID: ${transactionId}`)
 
     // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
