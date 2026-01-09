@@ -1,38 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { verificarPremiumAsync, verificarPremium } from '@/lib/storage';
+import { verificarPremiumAsync } from '@/lib/storage';
 
-// DEV MODE: Desabilitado em produção para segurança
-const DEV_MODE_PREMIUM = false;
+// Premium status is now validated entirely server-side via the is_premium_user() RPC function
+// This prevents any client-side manipulation of premium status
 
 export function usePremium() {
   const { user } = useAuth();
-  const [isPremium, setIsPremium] = useState<boolean>(DEV_MODE_PREMIUM || verificarPremium());
-  const [loading, setLoading] = useState(!DEV_MODE_PREMIUM);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Se DEV_MODE_PREMIUM está ativo, pular verificação
-    if (DEV_MODE_PREMIUM) {
-      setIsPremium(true);
-      setLoading(false);
-      return;
-    }
-
     const checkPremium = async () => {
       setLoading(true);
       try {
+        // Server-side verification via RPC function
         const status = await verificarPremiumAsync(user?.email || undefined);
         setIsPremium(status);
       } catch (error) {
         console.error('Erro ao verificar premium:', error);
-        setIsPremium(verificarPremium());
+        // On error, assume not premium for security
+        setIsPremium(false);
       } finally {
         setLoading(false);
       }
     };
 
-    checkPremium();
-  }, [user?.email]);
+    // Only check if user is authenticated
+    if (user) {
+      checkPremium();
+    } else {
+      setIsPremium(false);
+      setLoading(false);
+    }
+  }, [user?.email, user]);
 
   return { isPremium, loading };
 }

@@ -109,66 +109,51 @@ export async function limparHistorico(): Promise<void> {
   }
 }
 
-// PREMIUM - Legacy sync check (fallback)
-export function verificarPremium(): boolean {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem('ponto_cordeiro_premium') === 'ativo';
-}
-
-// PREMIUM - Async check from database
+// PREMIUM - Server-side check using RPC function
+// This uses the is_premium_user() function defined in the database
+// which is a SECURITY DEFINER function that validates subscription status
 export async function verificarPremiumAsync(userEmail?: string): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user && !userEmail) {
-      return verificarPremium();
+    if (!user) {
+      // Not authenticated - cannot have premium
+      return false;
     }
 
-    const email = userEmail || user?.email;
-    
-    if (!email) {
-      return verificarPremium();
-    }
-
-    const { data: subscription, error } = await supabase
-      .from('subscriptions')
-      .select('status, expires_at')
-      .eq('email', email.toLowerCase())
-      .eq('status', 'active')
-      .maybeSingle();
+    // Call the server-side RPC function to check premium status
+    // This function checks the subscriptions table with proper security
+    const { data: isPremium, error } = await supabase
+      .rpc('is_premium_user', { check_user_id: user.id });
 
     if (error) {
-      return verificarPremium();
+      console.error('Erro ao verificar premium via RPC:', error);
+      return false;
     }
 
-    if (!subscription) {
-      return verificarPremium();
-    }
-
-    // Check if subscription is still valid
-    const expiresAt = new Date(subscription.expires_at);
-    const isValid = subscription.status === 'active' && expiresAt > new Date();
-
-    if (isValid) {
-      localStorage.setItem('ponto_cordeiro_premium', 'ativo');
-    } else {
-      localStorage.removeItem('ponto_cordeiro_premium');
-    }
-
-    return isValid;
-  } catch {
-    return verificarPremium();
+    return isPremium === true;
+  } catch (error) {
+    console.error('Erro ao verificar premium:', error);
+    return false;
   }
 }
 
+// Legacy function kept for backward compatibility but always returns false
+// Server-side RPC is the only source of truth for premium status
+export function verificarPremium(): boolean {
+  // Always return false - premium status must be verified via verificarPremiumAsync
+  // This prevents localStorage manipulation attacks
+  return false;
+}
+
+// These functions are deprecated - premium status is managed server-side only
+// Kept for backward compatibility but they no longer affect premium verification
 export function ativarPremium(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('ponto_cordeiro_premium', 'ativo');
-  }
+  // No-op - premium status is managed via webhook and database only
+  console.warn('ativarPremium() is deprecated. Premium is managed server-side.');
 }
 
 export function desativarPremium(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('ponto_cordeiro_premium');
-  }
+  // No-op - premium status is managed via webhook and database only
+  console.warn('desativarPremium() is deprecated. Premium is managed server-side.');
 }
