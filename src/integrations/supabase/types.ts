@@ -186,6 +186,7 @@ export type Database = {
         Returns: boolean
       }
       is_premium_user: { Args: { check_user_id?: string }; Returns: boolean }
+      link_my_subscription: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
