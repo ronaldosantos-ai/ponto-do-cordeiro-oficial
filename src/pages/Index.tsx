@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, TrendingDown, MessageCircle, Crown, Loader2, LogIn } from "lucide-react";
+import { CustoDiarioHelper } from "@/components/CustoDiarioHelper";
 import { calcularDecisao, ResultData } from "@/lib/calculations";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
@@ -192,6 +193,7 @@ const Index = () => {
                 Custo diário (R$/dia)
               </Label>
               <Input id="custo" type="number" step="0.01" min="0" placeholder="Ex: 3.50" inputMode="decimal" className="h-14 text-lg border-2" value={custo} onChange={e => handleInputChange(setCusto, e.target.value)} />
+              <CustoDiarioHelper />
             </div>
 
             {/* Preço de venda */}
