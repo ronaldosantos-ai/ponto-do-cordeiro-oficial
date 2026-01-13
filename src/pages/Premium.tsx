@@ -9,6 +9,7 @@ import { gerarPDFSimulacao } from "@/lib/pdf";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { PremiumBadge } from "@/components/PremiumBadge";
+import { CustoDiarioHelper } from "@/components/CustoDiarioHelper";
 
 const Premium = () => {
   const navigate = useNavigate();
@@ -309,6 +310,7 @@ Gerado por Ponto do Cordeiro Premium`;
             onChange={handleInputChange(setCusto)}
             className="input-field"
           />
+          <CustoDiarioHelper />
         </div>
 
         <div>
