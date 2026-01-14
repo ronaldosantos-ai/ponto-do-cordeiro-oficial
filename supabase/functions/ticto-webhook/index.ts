@@ -37,18 +37,29 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  console.log('🔵 Webhook Ticto recebido')
+  // Generate request ID for traceability
+  const requestId = crypto.randomUUID()
+  console.log(`🔵 [${requestId}] Webhook Ticto recebido`)
 
   try {
     // Parse request body first (token comes in body for Ticto)
-    const rawPayload = await req.json()
-    console.log('📦 Payload recebido')
+    let rawPayload
+    try {
+      rawPayload = await req.json()
+    } catch (parseError) {
+      console.error(`❌ [${requestId}] JSON inválido`)
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    console.log(`📦 [${requestId}] Payload recebido`)
 
     // Validate payload structure with Zod
     const parseResult = webhookSchema.safeParse(rawPayload)
     
     if (!parseResult.success) {
-      console.error('❌ Payload inválido:', parseResult.error.flatten())
+      console.error(`❌ [${requestId}] Payload inválido:`, parseResult.error.flatten())
       return new Response(JSON.stringify({ error: 'Invalid payload structure' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -62,15 +73,14 @@ Deno.serve(async (req) => {
     const expectedToken = Deno.env.get('TICTO_WEBHOOK_TOKEN')
 
     if (!webhookToken || webhookToken !== expectedToken) {
-      console.error('❌ Token inválido ou ausente')
-      console.log('Token recebido:', webhookToken ? 'presente' : 'ausente')
+      console.error(`❌ [${requestId}] Token inválido ou ausente`)
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    console.log('✅ Token validado com sucesso')
+    console.log(`✅ [${requestId}] Token validado com sucesso`)
 
     // Extract relevant data from validated payload
     const { status, customer, order, item } = payload
@@ -87,7 +97,7 @@ Deno.serve(async (req) => {
     const productName = item?.product_name?.toLowerCase() || ''
     const planType = (offerName.includes('anual') || productName.includes('anual')) ? 'annual' : 'monthly'
     
-    console.log(`📅 Tipo de plano detectado: ${planType}`)
+    console.log(`📅 [${requestId}] Tipo de plano: ${planType}, Status: ${status}`)
 
     // Calculate expiration date
     const now = new Date()
@@ -110,14 +120,22 @@ Deno.serve(async (req) => {
     const cancellationStatuses = ['canceled', 'expired', 'refunded', 'chargeback']
 
     if (activationStatuses.includes(status)) {
-      console.log('✅ Pagamento aprovado - Ativando Premium')
+      console.log(`✅ [${requestId}] Pagamento aprovado - Ativando Premium`)
 
       // Check if subscription exists
-      const { data: existingSub } = await supabase
+      const { data: existingSub, error: selectError } = await supabase
         .from('subscriptions')
         .select('id')
         .eq('email', email)
         .maybeSingle()
+
+      if (selectError) {
+        console.error(`❌ [${requestId}] Erro ao buscar subscription:`, selectError.message)
+        return new Response(JSON.stringify({ error: 'Database error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
 
       if (existingSub) {
         // Update existing subscription
@@ -133,10 +151,13 @@ Deno.serve(async (req) => {
           .eq('email', email)
 
         if (updateError) {
-          console.error('❌ Erro ao atualizar subscription:', updateError)
-          throw updateError
+          console.error(`❌ [${requestId}] Erro ao atualizar subscription:`, updateError.message)
+          return new Response(JSON.stringify({ error: 'Database error' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
-        console.log('✅ Subscription atualizada')
+        console.log(`✅ [${requestId}] Subscription atualizada`)
       } else {
         // Create new subscription (user_id will be linked when user logs in)
         const { error: insertError } = await supabase
@@ -152,13 +173,16 @@ Deno.serve(async (req) => {
           })
 
         if (insertError) {
-          console.error('❌ Erro ao criar subscription:', insertError)
-          throw insertError
+          console.error(`❌ [${requestId}] Erro ao criar subscription:`, insertError.message)
+          return new Response(JSON.stringify({ error: 'Database error' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
-        console.log('✅ Nova subscription criada')
+        console.log(`✅ [${requestId}] Nova subscription criada`)
       }
     } else if (cancellationStatuses.includes(status)) {
-      console.log('🚫 Assinatura cancelada/expirada - Removendo Premium')
+      console.log(`🚫 [${requestId}] Assinatura cancelada/expirada - Removendo Premium`)
 
       const newStatus = status === 'refunded' || status === 'chargeback' ? 'canceled' : status
 
@@ -168,24 +192,28 @@ Deno.serve(async (req) => {
         .eq('email', email)
 
       if (cancelError) {
-        console.error('❌ Erro ao cancelar subscription:', cancelError)
-        throw cancelError
+        console.error(`❌ [${requestId}] Erro ao cancelar subscription:`, cancelError.message)
+        return new Response(JSON.stringify({ error: 'Database error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
       }
-      console.log('✅ Subscription cancelada')
+      console.log(`✅ [${requestId}] Subscription cancelada`)
     } else {
-      console.log(`ℹ️ Status não processado (aguardando pagamento ou outro): ${status}`)
+      console.log(`ℹ️ [${requestId}] Status não processado (aguardando pagamento): ${status}`)
     }
 
+    console.log(`✅ [${requestId}] Webhook processado com sucesso`)
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
-    console.error('❌ Erro no webhook:', error)
-    // Always return 200 to avoid Ticto retries
-    return new Response(JSON.stringify({ success: true, error: 'Internal error logged' }), {
-      status: 200,
+    // Unexpected errors - log without exposing details
+    console.error(`❌ Erro inesperado no webhook:`, error instanceof Error ? error.message : 'Unknown error')
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
