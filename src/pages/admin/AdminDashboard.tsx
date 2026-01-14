@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -17,9 +17,10 @@ import {
   TrendingUp,
   Crown,
   DollarSign,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from 'lucide-react';
-import { initMockData } from '@/lib/mockAdminData';
+import { useAdminStats } from '@/hooks/useAdminData';
 import {
   LineChart,
   Line,
@@ -34,12 +35,7 @@ import { ptBR } from 'date-fns/locale';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  
-  const mockData = useMemo(() => initMockData(), []);
-  const { users, simulacoes, estatisticas } = mockData;
-
-  // Últimas 10 simulações
-  const ultimasSimulacoes = simulacoes.slice(0, 10);
+  const { stats, simulationsPerDay, isLoading, simulations } = useAdminStats();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -48,32 +44,55 @@ export default function AdminDashboard() {
     }).format(value);
   };
 
+  // Get last 10 simulations
+  const ultimasSimulacoes = simulations?.slice(0, 10) ?? [];
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <Skeleton className="h-8 w-20 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Visão geral do Ponto do Cordeiro</p>
+          <p className="text-muted-foreground">Visão geral do Ponto do Cordeiro - Dados em tempo real</p>
         </div>
 
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total de Usuários */}
+          {/* Total de Assinantes */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total de Usuários
+                Total de Assinaturas
               </CardTitle>
               <Users className="w-5 h-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{estatisticas.totalUsuarios}</div>
+              <div className="text-3xl font-bold">{stats.totalSubscriptions}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                usuários cadastrados
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                +3 esta semana
+                registradas no sistema
               </p>
             </CardContent>
           </Card>
@@ -87,31 +106,31 @@ export default function AdminDashboard() {
               <TrendingUp className="w-5 h-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{estatisticas.simulacoesHoje}</div>
+              <div className="text-3xl font-bold">{stats.simulationsToday}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 simulações hoje
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Total: {estatisticas.totalSimulacoes} simulações
+                Total: {stats.totalSimulations} simulações
               </p>
             </CardContent>
           </Card>
 
-          {/* Usuários Premium */}
+          {/* Assinantes Ativos */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Usuários Premium
+                Assinantes Ativos
               </CardTitle>
               <Crown className="w-5 h-5 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{estatisticas.usuariosPremium}</div>
+              <div className="text-3xl font-bold">{stats.activeSubscriptions}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                assinantes ativos
+                assinaturas ativas
               </p>
               <p className="text-xs text-green-600 mt-1">
-                {estatisticas.percentualPremium}% do total
+                {stats.monthlySubscriptions} mensais, {stats.yearlySubscriptions} anuais
               </p>
             </CardContent>
           </Card>
@@ -120,17 +139,17 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Receita Mensal
+                Receita Mensal (MRR)
               </CardTitle>
               <DollarSign className="w-5 h-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{formatCurrency(estatisticas.mrr)}</div>
+              <div className="text-3xl font-bold">{formatCurrency(stats.mrr)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 receita recorrente
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {formatCurrency(estatisticas.arr)}/ano
+                {formatCurrency(stats.mrr * 12)}/ano estimado
               </p>
             </CardContent>
           </Card>
@@ -144,7 +163,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={estatisticas.simulacoesPorDia}>
+                <LineChart data={simulationsPerDay}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis 
                     dataKey="dia" 
@@ -178,60 +197,72 @@ export default function AdminDashboard() {
         {/* Tabela de Últimas Atividades */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Últimas Atividades</CardTitle>
+            <CardTitle>Últimas Simulações</CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/admin/simulations')}>
               Ver todas
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Animal</TableHead>
-                  <TableHead>Peso</TableHead>
-                  <TableHead>Decisão</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ultimasSimulacoes.map((sim) => (
-                  <TableRow key={sim.id}>
-                    <TableCell className="text-sm">
-                      {format(new Date(sim.criadoEm), "dd/MM HH:mm", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell className="text-sm truncate max-w-[150px]">
-                      {sim.userEmail}
-                    </TableCell>
-                    <TableCell className="text-sm">{sim.identificacao}</TableCell>
-                    <TableCell className="text-sm">{sim.peso} kg</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={sim.decisao === 'vender' ? 'default' : 'destructive'}
-                        className={sim.decisao === 'vender' ? 'bg-green-600' : ''}
-                      >
-                        {sim.decisao === 'vender' ? 'Vender' : 'Segurar'}
-                      </Badge>
-                    </TableCell>
+            {ultimasSimulacoes.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                Nenhuma simulação encontrada
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Animal</TableHead>
+                    <TableHead>Decisão</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {ultimasSimulacoes.map((sim) => {
+                    const resultado = sim.resultado as Record<string, unknown>;
+                    const decisao = resultado?.decisao as string | undefined;
+                    
+                    return (
+                      <TableRow key={sim.id}>
+                        <TableCell className="text-sm">
+                          {format(new Date(sim.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-sm">{sim.tipo}</TableCell>
+                        <TableCell className="text-sm">{sim.identificacao || '-'}</TableCell>
+                        <TableCell>
+                          {decisao ? (
+                            <Badge 
+                              variant={decisao === 'vender' ? 'default' : 'destructive'}
+                              className={decisao === 'vender' ? 'bg-green-600' : ''}
+                            >
+                              {decisao === 'vender' ? 'Vender' : 'Segurar'}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">-</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
         {/* Ações Rápidas */}
         <div className="flex flex-wrap gap-3">
-          <Button onClick={() => navigate('/admin/users')}>
-            <Users className="w-4 h-4 mr-2" />
-            Ver todos usuários
+          <Button onClick={() => navigate('/admin/billing')}>
+            <Crown className="w-4 h-4 mr-2" />
+            Ver assinaturas
           </Button>
-          <Button variant="outline" onClick={() => navigate('/admin/settings')}>
-            Configurações
+          <Button variant="outline" onClick={() => navigate('/admin/simulations')}>
+            Ver simulações
           </Button>
-          <Button variant="outline" onClick={() => navigate('/admin/exports')}>
-            Exportar dados
+          <Button variant="outline" onClick={() => navigate('/admin/logs')}>
+            Ver logs de auditoria
           </Button>
         </div>
       </div>
