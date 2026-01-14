@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, MessageCircle, Save, Bell, LogOut, FileDown } from "lucide-react";
+import { ArrowLeft, Loader2, MessageCircle, Save, Bell, LogOut, FileDown, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calcularProjecao, SimulationData, ResultData } from "@/lib/calculations";
 import { salvarSimulacao } from "@/lib/storage";
@@ -10,6 +10,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { PremiumBadge } from "@/components/PremiumBadge";
 import { CustoDiarioHelper } from "@/components/CustoDiarioHelper";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface Regiao {
+  id: string;
+  nome: string;
+  preco: number;
+}
 
 const Premium = () => {
   const navigate = useNavigate();
@@ -22,6 +35,8 @@ const Premium = () => {
   const [dias, setDias] = useState('');
   const [custo, setCusto] = useState('');
   const [precoVenda, setPrecoVenda] = useState('');
+  const [regiaoSelecionada, setRegiaoSelecionada] = useState('');
+  const [regioes, setRegioes] = useState<Regiao[]>([]);
   
   // Estados Premium
   const [ganhoPesoEsperado, setGanhoPesoEsperado] = useState('');
@@ -34,6 +49,18 @@ const Premium = () => {
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
   const [erroDetalhes, setErroDetalhes] = useState('');
+
+  // Carregar regiões do localStorage
+  useEffect(() => {
+    const regioesStorage = localStorage.getItem('regioes');
+    if (regioesStorage) {
+      try {
+        setRegioes(JSON.parse(regioesStorage));
+      } catch {
+        setRegioes([]);
+      }
+    }
+  }, []);
 
   // Verificar acesso Premium e autenticação
   useEffect(() => {
@@ -315,6 +342,41 @@ Gerado por Ponto do Cordeiro Premium`;
 
         <div>
           <label htmlFor="precoVenda" className="text-label">Preço de venda (R$/kg)</label>
+          
+          {/* Seletor de região */}
+          <Select
+            value={regiaoSelecionada}
+            onValueChange={(value) => {
+              if (value === 'gerenciar') {
+                navigate('/configuracoes/regioes');
+                return;
+              }
+              setRegiaoSelecionada(value);
+              const regiao = regioes.find(r => r.id === value);
+              if (regiao) {
+                setPrecoVenda(regiao.preco.toString());
+                setResultado(null);
+              }
+            }}
+          >
+            <SelectTrigger className="mb-2">
+              <SelectValue placeholder="Selecionar região (opcional)" />
+            </SelectTrigger>
+            <SelectContent>
+              {regioes.map((regiao) => (
+                <SelectItem key={regiao.id} value={regiao.id}>
+                  {regiao.nome} - R$ {regiao.preco.toFixed(2)}/kg
+                </SelectItem>
+              ))}
+              <SelectItem value="gerenciar" className="text-primary font-medium">
+                <span className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  Gerenciar regiões
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
           <input
             id="precoVenda"
             type="number"
@@ -323,7 +385,10 @@ Gerado por Ponto do Cordeiro Premium`;
             min="0"
             placeholder="Ex: 18.50"
             value={precoVenda}
-            onChange={handleInputChange(setPrecoVenda)}
+            onChange={(e) => {
+              setPrecoVenda(e.target.value);
+              setResultado(null);
+            }}
             className="input-field"
           />
         </div>
