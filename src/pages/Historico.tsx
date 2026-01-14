@@ -559,6 +559,18 @@ const Historico = () => {
                 )}
               </div>
 
+              {/* Informações de região e preço */}
+              {(item.dados.regiao || item.dados.precoUsado) && (
+                <div className="mt-2 pt-2 border-t border-border/50 text-sm text-muted-foreground space-y-1">
+                  {item.dados.regiao && (
+                    <p>📍 Região: <span className="font-medium text-foreground">{item.dados.regiao}</span></p>
+                  )}
+                  {item.dados.precoUsado && (
+                    <p>💲 Preço usado: <span className="font-medium text-foreground">R$ {item.dados.precoUsado.toFixed(2)}/kg</span></p>
+                  )}
+                </div>
+              )}
+
               {/* Footer do card */}
               <div className="mt-3 pt-3 border-t border-border">
                 <p className="text-sm text-muted-foreground">
