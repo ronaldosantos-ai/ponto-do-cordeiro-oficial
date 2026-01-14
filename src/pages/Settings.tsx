@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, BarChart3, FileSpreadsheet, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bell, Crown, Database, Info, Trash2, Download, Settings as SettingsIcon, Loader2, FileText, BarChart3, FileSpreadsheet, ChevronRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -425,6 +425,13 @@ const Settings = () => {
                   titulo="Exportar para Google Sheets"
                   descricao="Tutorial completo para organizar dados em planilhas"
                   onClick={() => navigate('/settings/google-sheets')}
+                  acao={<ChevronRight className="w-5 h-5 text-muted-foreground" />}
+                />
+                <SettingsItem
+                  icone={<MapPin className="w-5 h-5" />}
+                  titulo="Gerenciar Preços por Região"
+                  descricao="Configure preços médios por localidade"
+                  onClick={() => navigate('/configuracoes/regioes')}
                   acao={<ChevronRight className="w-5 h-5 text-muted-foreground" />}
                 />
               </>

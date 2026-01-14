@@ -16,6 +16,7 @@ import Historico from "./pages/Historico";
 import Graficos from "./pages/Graficos";
 import Alertas from "./pages/Alertas";
 import Settings from "./pages/Settings";
+import Regioes from "./pages/Regioes";
 import GoogleSheets from "./pages/GoogleSheets";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/alertas" element={<Alertas />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/google-sheets" element={<GoogleSheets />} />
+            <Route path="/configuracoes/regioes" element={<Regioes />} />
             <Route path="/install" element={<Install />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
