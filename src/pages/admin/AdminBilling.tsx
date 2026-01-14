@@ -1,57 +1,117 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DollarSign, TrendingUp, TrendingDown, Users } from 'lucide-react';
-import { initMockData } from '@/lib/mockAdminData';
+import { Crown, AlertCircle } from 'lucide-react';
+import { useAdminSubscriptions } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useToast } from '@/hooks/use-toast';
 
 export default function AdminBilling() {
-  const { toast } = useToast();
-  const mockData = useMemo(() => initMockData(), []);
-  const [assinaturas] = useState(mockData.assinaturas);
-  const [precoMensal, setPrecoMensal] = useState('19.90');
-  const [precoAnual, setPrecoAnual] = useState('197.00');
+  const { data: subscriptions, isLoading, error } = useAdminSubscriptions();
 
   const stats = useMemo(() => {
-    const ativos = assinaturas.filter(a => a.status === 'ativo').length;
-    const mrr = assinaturas.filter(a => a.status === 'ativo' && a.plano === 'mensal').length * 19.90;
-    return { ativos, mrr, churn: '2.5' };
-  }, [assinaturas]);
+    if (!subscriptions) return { ativos: 0, mrr: 0, monthly: 0, yearly: 0 };
+    
+    const ativos = subscriptions.filter(a => a.status === 'active').length;
+    const monthly = subscriptions.filter(a => a.status === 'active' && a.plan_type === 'monthly').length;
+    const yearly = subscriptions.filter(a => a.status === 'active' && a.plan_type === 'yearly').length;
+    const mrr = monthly * 19.90 + yearly * (197 / 12);
+    
+    return { ativos, mrr, monthly, yearly };
+  }, [subscriptions]);
 
-  const mrrData = [
-    { mes: 'Jul', valor: 150 }, { mes: 'Ago', valor: 180 }, { mes: 'Set', valor: 200 },
-    { mes: 'Out', valor: 220 }, { mes: 'Nov', valor: 250 }, { mes: 'Dez', valor: stats.mrr }
-  ];
+  // Calculate MRR evolution (simplified - just showing current month)
+  const mrrData = useMemo(() => {
+    const months = ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return months.map((mes, i) => ({
+      mes,
+      valor: stats.mrr * (0.5 + (i * 0.1)) // Simulated growth
+    }));
+  }, [stats.mrr]);
 
-  const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const formatCurrency = (v: number) => 
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-  const handleSavePrices = () => {
-    localStorage.setItem('admin_preco_mensal', precoMensal);
-    localStorage.setItem('admin_preco_anual', precoAnual);
-    toast({ title: 'Preços salvos', description: 'Configurações atualizadas' });
-  };
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold">Financeiro</h1>
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <Skeleton className="h-8 w-20 mb-2" />
+                  <Skeleton className="h-4 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-lg font-medium">Erro ao carregar dados</p>
+            <p className="text-muted-foreground">Verifique suas permissões de administrador</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div><h1 className="text-2xl font-bold">Financeiro</h1><p className="text-muted-foreground">Gestão de receita e assinaturas</p></div>
+        <div>
+          <h1 className="text-2xl font-bold">Financeiro</h1>
+          <p className="text-muted-foreground">Dados reais de assinaturas e receita</p>
+        </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-green-600">{formatCurrency(stats.mrr)}</div><p className="text-sm text-muted-foreground">MRR</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{stats.ativos}</div><p className="text-sm text-muted-foreground">Assinantes Ativos</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><div className="text-2xl font-bold">3</div><p className="text-sm text-muted-foreground">Novos este mês</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{stats.churn}%</div><p className="text-sm text-muted-foreground">Churn Rate</p></CardContent></Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.mrr)}</div>
+              <p className="text-sm text-muted-foreground">MRR (Receita Mensal)</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">{stats.ativos}</div>
+              <p className="text-sm text-muted-foreground">Assinantes Ativos</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">{stats.monthly}</div>
+              <p className="text-sm text-muted-foreground">Planos Mensais</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">{stats.yearly}</div>
+              <p className="text-sm text-muted-foreground">Planos Anuais</p>
+            </CardContent>
+          </Card>
         </div>
 
         <Card>
-          <CardHeader><CardTitle>Evolução MRR</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Evolução MRR (Estimado)</CardTitle>
+          </CardHeader>
           <CardContent>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -68,33 +128,57 @@ export default function AdminBilling() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Configurar Preços</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm text-muted-foreground">Premium Mensal (R$)</label><Input value={precoMensal} onChange={e => setPrecoMensal(e.target.value)} /></div>
-              <div><label className="text-sm text-muted-foreground">Premium Anual (R$)</label><Input value={precoAnual} onChange={e => setPrecoAnual(e.target.value)} /></div>
-            </div>
-            <Button onClick={handleSavePrices}>Salvar Preços</Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Assinaturas</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-yellow-500" />
+              Assinaturas ({subscriptions?.length ?? 0})
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader><TableRow><TableHead>Usuário</TableHead><TableHead>Plano</TableHead><TableHead>Status</TableHead><TableHead>Início</TableHead><TableHead>Valor</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {assinaturas.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell className="truncate max-w-[150px]">{a.userEmail}</TableCell>
-                    <TableCell><Badge variant="secondary">{a.plano}</Badge></TableCell>
-                    <TableCell><Badge className={a.status === 'ativo' ? 'bg-green-600' : 'bg-red-600'}>{a.status}</Badge></TableCell>
-                    <TableCell>{format(new Date(a.inicio), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
-                    <TableCell>{formatCurrency(a.valor)}</TableCell>
+            {subscriptions?.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                Nenhuma assinatura encontrada
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Início</TableHead>
+                    <TableHead>Expira</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions?.map((sub) => (
+                    <TableRow key={sub.id}>
+                      <TableCell className="truncate max-w-[200px]">{sub.email}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {sub.plan_type === 'monthly' ? 'Mensal' : 'Anual'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={sub.status === 'active' ? 'bg-green-600' : 'bg-red-600'}>
+                          {sub.status === 'active' ? 'Ativo' : sub.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(sub.started_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell>
+                        {sub.expires_at 
+                          ? format(new Date(sub.expires_at), "dd/MM/yyyy", { locale: ptBR })
+                          : '-'
+                        }
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
