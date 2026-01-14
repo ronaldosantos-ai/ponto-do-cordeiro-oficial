@@ -5,6 +5,8 @@ export interface SimulationData {
   precoVenda: number;
   ganhoPesoEsperado?: number; // opcional, Premium
   diasAdicionais?: number; // opcional, Premium
+  regiao?: string; // nome da região selecionada
+  precoUsado?: number; // preço usado na simulação
 }
 
 export interface ResultData {

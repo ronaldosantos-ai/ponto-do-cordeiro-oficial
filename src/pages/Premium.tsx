@@ -127,13 +127,17 @@ const Premium = () => {
     
     await new Promise(resolve => setTimeout(resolve, 300));
     
+    const regiaoNome = regioes.find(r => r.id === regiaoSelecionada)?.nome || undefined;
+    
     const data: SimulationData = {
       peso: parseFloat(peso),
       dias: parseInt(dias),
       custo: parseFloat(custo),
       precoVenda: parseFloat(precoVenda),
       ganhoPesoEsperado: parseFloat(ganhoPesoEsperado),
-      diasAdicionais: parseInt(diasAdicionais)
+      diasAdicionais: parseInt(diasAdicionais),
+      regiao: regiaoNome,
+      precoUsado: parseFloat(precoVenda)
     };
     
     const result = calcularProjecao(data);
