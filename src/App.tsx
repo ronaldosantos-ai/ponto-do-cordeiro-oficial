@@ -7,6 +7,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { AlertasNotifier } from "./components/AlertasNotifier";
 import { BottomNav } from "./components/BottomNav";
 import { AdminRoute } from "./components/AdminRoute";
+import { DevNav } from "./components/DevNav";
 import Index from "./pages/Index";
 import Landing from "./pages/LandingV2";
 import Premium from "./pages/Premium";
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
+          <DevNav />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
