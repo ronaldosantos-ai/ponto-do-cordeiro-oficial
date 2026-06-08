@@ -16,6 +16,11 @@ export function AdminRoute({ children }: AdminRouteProps) {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (import.meta.env.DEV) {
+      setIsAuthorized(true);
+      return;
+    }
+
     if (loading) return;
 
     if (!user) {
