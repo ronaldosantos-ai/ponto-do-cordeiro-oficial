@@ -376,7 +376,7 @@ const LandingV2 = () => {
               <div className="mb-6 mt-4">
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium</h3>
                 <div className="flex items-baseline gap-1 flex-nowrap whitespace-nowrap">
-                  <span className="text-xs sm:text-sm text-muted-foreground line-through">R$ 29,90</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground line-through">R$ 49,90</span>
                   <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-emerald-600 leading-none">R$ 19,90</span>
                   <span className="text-xs sm:text-sm text-muted-foreground">/mês</span>
                 </div>
@@ -430,12 +430,12 @@ const LandingV2 = () => {
                 </Badge>
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Anual</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-bold text-muted-foreground line-through">R$ 297</span>
-                  <span className="text-4xl font-extrabold text-foreground">R$ 197</span>
+                  <span className="text-xl font-bold text-muted-foreground line-through">R$ 499</span>
+                  <span className="text-4xl font-extrabold text-foreground">R$ 98</span>
                   <span className="text-muted-foreground">/ano</span>
                 </div>
                 <div className="text-sm text-emerald-600 font-semibold mt-1">Por tempo limitado!</div>
-                <div className="text-sm text-muted-foreground mt-1">12x R$ 16,41</div>
+                <div className="text-sm text-muted-foreground mt-1">12x R$ 8,17</div>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -449,7 +449,7 @@ const LandingV2 = () => {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" />
-                  <span className="text-foreground">🎁 Grupo VIP</span>
+                  <span className="text-foreground">🎁 Suporte prioritário</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" />
