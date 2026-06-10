@@ -457,14 +457,8 @@ const LandingV2 = () => {
               </SimulacaoPopup>
             </Card>
 
-            <Card className="relative p-8 border-4 border-emerald-600 shadow-2xl shadow-emerald-600/20 lg:scale-105 bg-gradient-to-br from-card to-emerald-50/50 dark:to-emerald-950/20">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <Badge className="bg-emerald-600 text-white px-4 py-1 text-sm font-bold hover:bg-emerald-600">
-                  Mais escolhido
-                </Badge>
-              </div>
-
-              <div className="mb-6 mt-4">
+            <Card className="p-8 border-2 hover:shadow-lg transition-all">
+              <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Mensal</h3>
                 <div className="flex items-baseline gap-1 flex-nowrap whitespace-nowrap">
                   <span className="text-xs sm:text-sm text-muted-foreground line-through">R$ 49,90</span>
@@ -489,8 +483,13 @@ const LandingV2 = () => {
               <p className="text-center text-sm text-muted-foreground mt-3">Cancele quando quiser</p>
             </Card>
 
-            <Card className="p-8 border-2 hover:shadow-lg transition-all">
-              <div className="mb-6">
+            <Card className="relative p-8 border-4 border-emerald-600 shadow-2xl shadow-emerald-600/20 lg:scale-105 bg-gradient-to-br from-card to-emerald-50/50 dark:to-emerald-950/20">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <Badge className="bg-emerald-600 text-white px-4 py-1 text-sm font-bold hover:bg-emerald-600">
+                  Mais escolhido
+                </Badge>
+              </div>
+              <div className="mb-6 mt-4">
                 <Badge className="bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 mb-2 hover:bg-amber-100">
                   Melhor custo anual
                 </Badge>
