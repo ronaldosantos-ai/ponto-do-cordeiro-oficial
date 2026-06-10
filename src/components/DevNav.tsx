@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 const pages = [
   { group: "Públicas", items: [
-    { label: "Calculadora", path: "/" },
-    { label: "Landing Page", path: "/landing" },
+    { label: "Landing Page", path: "/" },
+    { label: "Calculadora (Simulador)", path: "/simulador" },
     { label: "Login / Cadastro", path: "/auth" },
     { label: "Instalar PWA", path: "/install" },
     { label: "Política de Privacidade", path: "/politica-privacidade" },

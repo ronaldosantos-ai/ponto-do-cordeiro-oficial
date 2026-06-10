@@ -45,7 +45,8 @@ const App = () => (
         <AlertasNotifier />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/simulador" element={<Index />} />
             <Route path="/landing" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/premium" element={<Premium />} />

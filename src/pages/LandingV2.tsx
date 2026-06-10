@@ -18,7 +18,12 @@ import {
   Target,
   Shield,
   Smartphone,
+  Menu,
+  X,
+  LogIn,
+  Smartphone as SmartphoneIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoPontoCordeiro from "@/assets/logo-ponto-cordeiro.png";
 import heroBackground from "@/assets/hero-background.jpg";
@@ -26,9 +31,16 @@ import SimulacaoPopup from "@/components/SimulacaoPopup";
 
 const LandingV2 = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const scrollToPrecos = () => {
     document.getElementById("precos")?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
+  };
+
+  const scrollToComoFunciona = () => {
+    document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
   };
 
   const handleCTA = () => {
@@ -37,6 +49,66 @@ const LandingV2 = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Menu Hambúrguer Fixo */}
+      <nav className="fixed top-0 right-0 z-50 p-4">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl p-2.5 shadow-md hover:shadow-lg transition-all"
+          aria-label="Menu"
+        >
+          {menuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
+        </button>
+
+        {menuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-[-1]"
+              onClick={() => setMenuOpen(false)}
+            />
+            <div className="absolute top-16 right-0 bg-white border border-gray-100 rounded-2xl shadow-2xl w-56 overflow-hidden">
+              <div className="py-2">
+                <button
+                  onClick={scrollToComoFunciona}
+                  className="flex items-center gap-3 w-full px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Target className="w-4 h-4 text-emerald-600" />
+                  Como funciona
+                </button>
+                <button
+                  onClick={scrollToPrecos}
+                  className="flex items-center gap-3 w-full px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  Planos
+                </button>
+                <button
+                  onClick={() => { navigate("/simulador"); setMenuOpen(false); }}
+                  className="flex items-center gap-3 w-full px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Calculator className="w-4 h-4 text-emerald-600" />
+                  Testar grátis
+                </button>
+                <button
+                  onClick={() => { navigate("/install"); setMenuOpen(false); }}
+                  className="flex items-center gap-3 w-full px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  Instalar App
+                </button>
+                <div className="mx-4 my-1 border-t border-gray-100" />
+                <button
+                  onClick={() => { navigate("/auth"); setMenuOpen(false); }}
+                  className="flex items-center gap-3 w-full px-5 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Entrar
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </nav>
+
       {/* Hero Section */}
       <section 
         className="min-h-screen flex items-center relative"
@@ -181,7 +253,7 @@ const LandingV2 = () => {
       </section>
 
       {/* Seção Solução */}
-      <section className="py-20 lg:py-32 bg-gradient-to-b from-muted/30 to-background">
+      <section id="como-funciona" className="py-20 lg:py-32 bg-gradient-to-b from-muted/30 to-background">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl lg:text-5xl font-bold text-center mb-6 text-foreground">
             Decisão certa em 3 passos
