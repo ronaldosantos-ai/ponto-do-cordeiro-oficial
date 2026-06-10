@@ -163,10 +163,6 @@ const LandingV2 = () => {
 
               <div className="mt-6 grid sm:grid-cols-3 gap-3 text-sm text-muted-foreground max-w-2xl">
                 <div className="flex items-center gap-2 rounded-full bg-white/70 dark:bg-background/70 px-4 py-2 border border-border backdrop-blur">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <span>Sem cartão</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-full bg-white/70 dark:bg-background/70 px-4 py-2 border border-border backdrop-blur">
                   <Clock className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span>4 campos, 60 segundos</span>
                 </div>
@@ -465,7 +461,7 @@ const LandingV2 = () => {
                   <span className="text-4xl font-extrabold text-foreground">R$ 19,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
-                <div className="text-sm text-emerald-600 font-semibold mt-1">7 dias grátis, sem cartão</div>
+                <div className="text-sm text-emerald-600 font-semibold mt-1">7 dias grátis</div>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -581,7 +577,7 @@ const LandingV2 = () => {
             </Button>
           </div>
 
-          <p className="mt-6 text-white/80 text-sm">7 dias grátis no Premium • Sem cartão • Garantia de 30 dias</p>
+          <p className="mt-6 text-white/80 text-sm">7 dias grátis no Premium • Garantia de 30 dias</p>
         </div>
       </section>
 
