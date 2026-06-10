@@ -460,10 +460,10 @@ const LandingV2 = () => {
             <Card className="p-8 border-2 hover:shadow-lg transition-all">
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Mensal</h3>
-                <div className="flex items-baseline gap-1 flex-nowrap whitespace-nowrap">
-                  <span className="text-xs sm:text-sm text-muted-foreground line-through">R$ 49,90</span>
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-emerald-600 leading-none">R$ 19,90</span>
-                  <span className="text-xs sm:text-sm text-muted-foreground">/mês</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-muted-foreground line-through">R$ 49,90</span>
+                  <span className="text-4xl font-extrabold text-foreground">R$ 19,90</span>
+                  <span className="text-muted-foreground">/mês</span>
                 </div>
                 <div className="text-sm text-emerald-600 font-semibold mt-1">7 dias grátis, sem cartão</div>
               </div>
@@ -494,10 +494,10 @@ const LandingV2 = () => {
                   Melhor custo anual
                 </Badge>
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Anual</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-bold text-muted-foreground line-through">R$ 499</span>
-                  <span className="text-4xl font-extrabold text-foreground">R$ 98</span>
-                  <span className="text-muted-foreground">/ano</span>
+                <div className="flex items-baseline gap-1 flex-nowrap whitespace-nowrap">
+                  <span className="text-xs sm:text-sm text-muted-foreground line-through">R$ 499</span>
+                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-emerald-600 leading-none">R$ 98</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">/ano</span>
                 </div>
               </div>
 
@@ -511,6 +511,7 @@ const LandingV2 = () => {
               <Button className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-bold" onClick={handleCTA}>
                 Assinar anual
               </Button>
+              <p className="text-center text-sm text-muted-foreground mt-3">Cancele quando quiser</p>
             </Card>
           </div>
         </div>
