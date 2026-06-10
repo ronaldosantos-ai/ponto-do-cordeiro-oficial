@@ -458,7 +458,7 @@ const LandingV2 = () => {
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Mensal</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold text-muted-foreground line-through">R$ 49,90</span>
-                  <span className="text-4xl font-extrabold text-foreground">R$ 19,90</span>
+                  <span className="text-3xl font-extrabold text-foreground">R$ 19,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
                 <div className="text-sm text-emerald-600 font-semibold mt-1">7 dias grátis</div>
@@ -492,7 +492,7 @@ const LandingV2 = () => {
                 <h3 className="text-2xl font-bold mb-2 text-foreground">Premium Anual</h3>
                 <div className="flex items-baseline gap-1 flex-nowrap whitespace-nowrap">
                   <span className="text-xs sm:text-sm text-muted-foreground line-through">R$ 499</span>
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-emerald-600 leading-none">R$ 98</span>
+                  <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 leading-none">R$ 98</span>
                   <span className="text-xs sm:text-sm text-muted-foreground">/ano</span>
                 </div>
               </div>
