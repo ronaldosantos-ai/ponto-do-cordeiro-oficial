@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
     // Ticto statuses: waiting_payment, approved, paid, canceled, refunded, expired, etc.
     const activationStatuses = ['approved', 'paid', 'active']
     const cancellationStatuses = ['canceled', 'expired', 'refunded', 'chargeback']
+    // waiting_payment = pagamento atrasado/recusado em renovação → suspende acesso
+    const suspensionStatuses = ['waiting_payment']
 
     if (activationStatuses.includes(status)) {
       console.log(`✅ [${requestId}] Pagamento aprovado - Ativando Premium`)
@@ -199,8 +201,35 @@ Deno.serve(async (req) => {
         })
       }
       console.log(`✅ [${requestId}] Subscription cancelada`)
+    } else if (suspensionStatuses.includes(status)) {
+      console.log(`⏸️ [${requestId}] Pagamento pendente/recusado - Suspendendo Premium`)
+
+      // Suspende apenas assinaturas que já existem (renovação com falha)
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id, status')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (existingSub) {
+        const { error: suspendError } = await supabase
+          .from('subscriptions')
+          .update({ status: 'suspended' })
+          .eq('email', email)
+
+        if (suspendError) {
+          console.error(`❌ [${requestId}] Erro ao suspender subscription:`, suspendError.message)
+          return new Response(JSON.stringify({ error: 'Database error' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+        console.log(`✅ [${requestId}] Subscription suspensa por falta de pagamento`)
+      } else {
+        console.log(`ℹ️ [${requestId}] Nenhuma subscription encontrada para suspender - ignorado`)
+      }
     } else {
-      console.log(`ℹ️ [${requestId}] Status não processado (aguardando pagamento): ${status}`)
+      console.log(`ℹ️ [${requestId}] Status não processado: ${status}`)
     }
 
     console.log(`✅ [${requestId}] Webhook processado com sucesso`)
