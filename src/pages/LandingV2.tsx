@@ -472,7 +472,7 @@ const LandingV2 = () => {
                 <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">Gráficos, análises e Google Sheets</span></li>
               </ul>
 
-              <Button className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 shadow-lg" onClick={handleCTA}>
+              <Button className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 shadow-lg" onClick={() => window.open('https://checkout.ticto.app/O1DB9588E', '_blank')}>
                 Experimentar Premium grátis
               </Button>
 
@@ -504,7 +504,7 @@ const LandingV2 = () => {
                 <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">🎁 Planilha de controle complementar</span></li>
               </ul>
 
-              <Button className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-bold" onClick={handleCTA}>
+              <Button className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-bold" onClick={() => window.open('https://checkout.ticto.app/O8AF6052B', '_blank')}>
                 Assinar anual
               </Button>
               <p className="text-center text-sm text-muted-foreground mt-3">Cancele quando quiser</p>
