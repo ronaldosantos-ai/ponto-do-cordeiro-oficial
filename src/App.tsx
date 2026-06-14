@@ -47,7 +47,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/simulador" element={<Index />} />
-            <Route path="/landing" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/premium" element={<Premium />} />
             <Route path="/premium-info" element={<PremiumInfo />} />
