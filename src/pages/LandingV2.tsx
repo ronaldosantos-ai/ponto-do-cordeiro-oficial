@@ -499,7 +499,7 @@ const LandingV2 = () => {
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">Tudo do Premium Mensal</span></li>
-                <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">2 meses de economia</span></li>
+                <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">7 meses de economia</span></li>
                 <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">🎁 Suporte prioritário</span></li>
                 <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" /><span className="text-foreground">🎁 Planilha de controle complementar</span></li>
               </ul>
