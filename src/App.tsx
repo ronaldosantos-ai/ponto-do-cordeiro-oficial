@@ -10,6 +10,8 @@ import { AdminRoute } from "./components/AdminRoute";
 import { DevNav } from "./components/DevNav";
 import Index from "./pages/Index";
 import Landing from "./pages/LandingV2";
+import LandingV3 from "./pages/LandingV3";
+import LandingV4 from "./pages/LandingV4";
 import Premium from "./pages/Premium";
 import PremiumInfo from "./pages/PremiumInfo";
 import PremiumAtivado from "./pages/PremiumAtivado";
@@ -46,6 +48,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/landing-v3" element={<LandingV3 />} />
+            <Route path="/landing-v4" element={<LandingV4 />} />
             <Route path="/simulador" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/premium" element={<Premium />} />
