@@ -1,233 +1,274 @@
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Chart from "react-apexcharts";
 
-const resumo = {
-  fazenda: "Fazenda São Pedro",
-  total: 87,
-  prontos: 62,
-  atencao: 14,
-  refugo: 3,
-  gmdMedio: 148,
-  pesoMedio: 33.4,
-  margemMedia: 58,
-};
+// ── Mock data ──
+const resumo = { total: 87, prontos: 62, atencao: 14, refugo: 3, gmdMedio: 148, margemMedia: 58 };
 
 const alertas = [
-  { id: "A-0042", sexo: "Macho", peso: 34.2, dias: 94,  lote: "Verão",  status: "atencao", gmd: 112 },
-  { id: "B-0017", sexo: "Fêmea", peso: 28.1, dias: 112, lote: "Verão",  status: "refugo",  gmd: 88  },
-  { id: "A-0055", sexo: "Macho", peso: 41.0, dias: 78,  lote: "Outono", status: "pronto",  gmd: 165 },
-  { id: "B-0023", sexo: "Fêmea", peso: 31.0, dias: 88,  lote: "Verão",  status: "atencao", gmd: 120 },
+  { id: "A-0042", sexo: "M", peso: 34.2, dias: 94,  lote: "Verão",  status: "atencao", gmd: 112 },
+  { id: "B-0017", sexo: "F", peso: 28.1, dias: 112, lote: "Verão",  status: "refugo",  gmd: 88  },
+  { id: "A-0055", sexo: "M", peso: 41.0, dias: 78,  lote: "Outono", status: "pronto",  gmd: 165 },
+  { id: "B-0023", sexo: "F", peso: 31.0, dias: 88,  lote: "Verão",  status: "atencao", gmd: 120 },
 ];
 
-const evolucaoPeso = [22, 25, 28, 30, 31, 33, 34];
-const meses = ["Nov", "Dez", "Jan", "Fev", "Mar", "Abr", "Mai"];
-
 const statusCfg = {
-  pronto:  { label: "Pronto",  cls: "badge-pronto",  cor: "hsl(113 48% 60%)" },
-  atencao: { label: "Atenção", cls: "badge-atencao", cor: "hsl(36 75% 60%)"  },
-  refugo:  { label: "Refugo",  cls: "badge-refugo",  cor: "hsl(0 65% 62%)"   },
+  pronto:  { label: "Pronto",  cls: "badge-pronto",  dot: "hsl(113 48% 55%)" },
+  atencao: { label: "Atenção", cls: "badge-atencao", dot: "hsl(36 75% 55%)"  },
+  refugo:  { label: "Refugo",  cls: "badge-refugo",  dot: "hsl(0 65% 55%)"   },
 };
 
 const hora = new Date().getHours();
 const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
-function MiniBarChart({ values, cor }: { values: number[]; cor: string }) {
-  const max = Math.max(...values);
+// ── Gráfico: evolução do peso médio (ApexCharts line) ──
+const lineChartOptions: ApexCharts.ApexOptions = {
+  chart: { type: "area", toolbar: { show: false }, sparkline: { enabled: false }, background: "transparent" },
+  stroke: { curve: "smooth", width: 2 },
+  fill: { type: "gradient", gradient: { shadeIntensity: 1, opacityFrom: 0.25, opacityTo: 0.01 } },
+  colors: ["#7CC96A"],
+  xaxis: {
+    categories: ["Nov", "Dez", "Jan", "Fev", "Mar", "Abr", "Mai"],
+    labels: { style: { colors: "hsl(100 18% 45%)", fontSize: "11px" } },
+    axisBorder: { show: false }, axisTicks: { show: false },
+  },
+  yaxis: { labels: { style: { colors: "hsl(100 18% 45%)", fontSize: "11px" }, formatter: (v) => `${v} kg` } },
+  grid: { borderColor: "hsl(100 18% 20%)", strokeDashArray: 4 },
+  tooltip: { theme: "dark", y: { formatter: (v) => `${v} kg` } },
+  dataLabels: { enabled: false },
+  markers: { size: 0 },
+};
+const lineChartSeries = [{ name: "Peso médio", data: [22, 25, 28, 30, 31, 33, 34] }];
+
+// ── Gráfico: GMD por mês (ApexCharts bar) ──
+const barChartOptions: ApexCharts.ApexOptions = {
+  chart: { type: "bar", toolbar: { show: false }, background: "transparent" },
+  colors: ["#7CC96A", "#E8A84A"],
+  plotOptions: { bar: { columnWidth: "55%", borderRadius: 4 } },
+  xaxis: {
+    categories: ["Nov", "Dez", "Jan", "Fev", "Mar", "Abr", "Mai"],
+    labels: { style: { colors: "hsl(100 18% 45%)", fontSize: "11px" } },
+    axisBorder: { show: false }, axisTicks: { show: false },
+  },
+  yaxis: { labels: { style: { colors: "hsl(100 18% 45%)", fontSize: "11px" }, formatter: (v) => `${v}g` } },
+  grid: { borderColor: "hsl(100 18% 20%)", strokeDashArray: 4 },
+  legend: { labels: { colors: "hsl(100 18% 55%)" } },
+  tooltip: { theme: "dark" },
+  dataLabels: { enabled: false },
+};
+const barChartSeries = [
+  { name: "GMD real",  data: [120, 135, 128, 142, 138, 151, 148] },
+  { name: "Meta",      data: [133, 133, 133, 133, 133, 133, 133] },
+];
+
+// ── Sub-componentes ──
+function KpiCard({ valor, label, sub, cor, bgCls }: {
+  valor: string; label: string; sub?: string; cor: string; bgCls?: string;
+}) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 40 }}>
-      {values.map((v, i) => (
-        <div key={i} style={{
-          flex: 1,
-          height: `${(v / max) * 100}%`,
-          borderRadius: 3,
-          background: i === values.length - 1 ? cor : cor.replace("60%", "25%"),
-          transition: "height 0.3s",
-        }} />
-      ))}
+    <div className={`stat-card ${bgCls ?? ""}`} style={{ padding: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+        <p style={{ fontSize: 30, fontWeight: 600, color: cor, lineHeight: 1 }}>{valor}</p>
+        {sub && (
+          <span style={{
+            fontSize: 11, padding: "3px 8px", borderRadius: 6,
+            background: "hsl(100 18% 22%)", color: "hsl(100 18% 55%)", fontWeight: 500,
+          }}>{sub}</span>
+        )}
+      </div>
+      <p style={{ fontSize: 12, color: "hsl(100 18% 50%)" }}>{label}</p>
     </div>
   );
 }
 
-function StatCard({
-  valor, label, sub, cor, bgCls, children
-}: {
-  valor: string; label: string; sub?: string;
-  cor: string; bgCls?: string; children?: React.ReactNode;
+function Card({ title, action, children }: {
+  title: string; action?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    <div className={`stat-card ${bgCls ?? ""}`} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <p style={{ fontSize: 28, fontWeight: 500, color: cor, lineHeight: 1 }}>{valor}</p>
-          <p style={{ fontSize: 12, color: "hsl(100 18% 50%)", marginTop: 4 }}>{label}</p>
-        </div>
-        {sub && (
-          <span style={{
-            fontSize: 11, fontWeight: 500, padding: "3px 8px", borderRadius: 6,
-            background: "hsl(100 18% 22%)", color: "hsl(100 18% 55%)"
-          }}>{sub}</span>
-        )}
+    <div style={{
+      background: "hsl(100 18% 13%)",
+      borderRadius: 14,
+      border: "0.5px solid hsl(100 18% 18%)",
+      overflow: "hidden",
+    }}>
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "16px 20px",
+        borderBottom: "0.5px solid hsl(100 18% 18%)",
+      }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "hsl(95 30% 88%)" }}>{title}</p>
+        {action}
       </div>
-      {children}
+      <div style={{ padding: "16px 20px" }}>{children}</div>
     </div>
   );
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [periodoGMD, setPeriodoGMD] = useState<"mes" | "ano">("mes");
+  const [periodo, setPeriodo] = useState<"mes"|"ano">("mes");
 
   return (
-    <div className="page">
-
+    <div>
       {/* ── Cabeçalho ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
-          <p style={{ fontSize: 13, color: "hsl(113 48% 55%)", marginBottom: 2 }}>{saudacao}</p>
-          <h1 style={{ fontSize: 20, fontWeight: 500, color: "hsl(95 30% 92%)" }}>{resumo.fazenda}</h1>
+          <p style={{ fontSize: 13, color: "hsl(113 48% 50%)", marginBottom: 4 }}>{saudacao}, Ronaldo</p>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: "hsl(95 30% 92%)" }}>Visão geral do rebanho</h1>
         </div>
-        <button
-          onClick={() => navigate("/rebanho/novo")}
-          style={{
-            background: "hsl(113 48% 60%)", color: "hsl(100 20% 11%)",
-            border: "none", borderRadius: 10, padding: "8px 14px",
-            fontSize: 13, fontWeight: 500, cursor: "pointer",
-          }}
-        >+ Animal</button>
+        <button onClick={() => navigate("/rebanho/novo")} style={{
+          background: "hsl(113 48% 60%)", color: "hsl(100 20% 10%)",
+          border: "none", borderRadius: 10, padding: "10px 18px",
+          fontSize: 13, fontWeight: 500, cursor: "pointer",
+        }}>+ Cadastrar animal</button>
       </div>
 
-      {/* ── Row 1: 4 cards principais ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-        <StatCard valor={String(resumo.total)} label="Animais ativos"
-          cor="hsl(95 30% 92%)" sub="↑ 4 novos" />
-        <StatCard valor={String(resumo.prontos)} label="Prontos p/ venda"
-          cor="hsl(113 48% 60%)" bgCls="stat-card-good" sub={`${Math.round(resumo.prontos/resumo.total*100)}%`} />
-        <StatCard valor={String(resumo.atencao)} label="GMD abaixo da meta"
-          cor="hsl(36 75% 60%)" bgCls="stat-card-alert" />
-        <StatCard valor={String(resumo.refugo)} label="Sugestão de refugo"
+      {/* ── Row 1: KPIs ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <KpiCard valor={String(resumo.total)} label="Animais ativos" sub="↑ 4 novos" cor="hsl(95 30% 92%)" />
+        <KpiCard valor={String(resumo.prontos)} label="Prontos p/ venda"
+          sub={`${Math.round(resumo.prontos/resumo.total*100)}%`}
+          cor="hsl(113 48% 62%)" bgCls="stat-card-good" />
+        <KpiCard valor={String(resumo.atencao)} label="GMD abaixo da meta"
+          cor="hsl(36 75% 62%)" bgCls="stat-card-alert" />
+        <KpiCard valor={String(resumo.refugo)} label="Sugestão de refugo"
           cor="hsl(0 65% 62%)" bgCls="stat-card-danger" />
       </div>
 
-      {/* ── Row 2: métricas financeiras ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 24 }}>
-        <div className="stat-card" style={{
-          background: "linear-gradient(135deg, hsl(113 40% 15%) 0%, hsl(113 30% 12%) 100%)",
-          border: "0.5px solid hsl(113 40% 22%)",
-        }}>
-          <p style={{ fontSize: 11, color: "hsl(113 48% 40%)", marginBottom: 6, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            GMD médio
-          </p>
-          <p style={{ fontSize: 26, fontWeight: 500, color: "hsl(113 48% 65%)", lineHeight: 1 }}>
-            {resumo.gmdMedio}g
-          </p>
-          <p style={{ fontSize: 11, color: "hsl(113 48% 35%)", marginTop: 4 }}>
-            Meta: 133g/dia ✓
-          </p>
-          <div style={{ marginTop: 8 }}>
-            <MiniBarChart values={[120,135,128,142,138,151,148]} cor="hsl(113 48% 60%)" />
-          </div>
-        </div>
+      {/* ── Row 2: gráficos ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
 
-        <div className="stat-card" style={{
-          background: "linear-gradient(135deg, hsl(36 50% 14%) 0%, hsl(36 40% 11%) 100%)",
-          border: "0.5px solid hsl(36 50% 20%)",
-        }}>
-          <p style={{ fontSize: 11, color: "hsl(36 75% 40%)", marginBottom: 6, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Margem/cabeça
-          </p>
-          <p style={{ fontSize: 26, fontWeight: 500, color: "hsl(36 75% 65%)", lineHeight: 1 }}>
-            R$ {resumo.margemMedia}
-          </p>
-          <p style={{ fontSize: 11, color: "hsl(36 75% 35%)", marginTop: 4 }}>
-            Meta: R$ 50–70 ✓
-          </p>
-          <div style={{ marginTop: 8 }}>
-            <MiniBarChart values={[40,45,38,55,52,60,58]} cor="hsl(36 75% 60%)" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Evolução do peso médio ── */}
-      <div className="stat-card" style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <p style={{ fontSize: 13, fontWeight: 500, color: "hsl(95 30% 85%)" }}>Evolução do peso médio</p>
+        {/* Gráfico: Evolução do peso */}
+        <Card title="Evolução do peso médio" action={
           <div style={{ display: "flex", gap: 6 }}>
             {(["mes","ano"] as const).map(p => (
-              <button key={p} onClick={() => setPeriodoGMD(p)} style={{
-                padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 500,
+              <button key={p} onClick={() => setPeriodo(p)} style={{
+                padding: "4px 12px", borderRadius: 6, fontSize: 11, fontWeight: 500,
                 cursor: "pointer", border: "0.5px solid",
-                background: periodoGMD === p ? "hsl(113 48% 60%)" : "transparent",
-                color: periodoGMD === p ? "hsl(100 20% 11%)" : "hsl(100 18% 50%)",
-                borderColor: periodoGMD === p ? "hsl(113 48% 60%)" : "hsl(100 18% 25%)",
-              }}>
-                {p === "mes" ? "Mês" : "Ano"}
-              </button>
+                background: periodo === p ? "hsl(113 48% 60%)" : "transparent",
+                color: periodo === p ? "hsl(100 20% 10%)" : "hsl(100 18% 50%)",
+                borderColor: periodo === p ? "hsl(113 48% 60%)" : "hsl(100 18% 25%)",
+              }}>{p === "mes" ? "Mês" : "Ano"}</button>
             ))}
           </div>
-        </div>
-        {/* Gráfico de barras simples */}
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 64 }}>
-          {evolucaoPeso.map((v, i) => (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{
-                width: "100%",
-                height: `${(v / Math.max(...evolucaoPeso)) * 56}px`,
-                borderRadius: "4px 4px 0 0",
-                background: i === evolucaoPeso.length - 1
-                  ? "hsl(113 48% 60%)"
-                  : "hsl(113 48% 22%)",
-              }} />
-              <span style={{ fontSize: 10, color: "hsl(100 18% 40%)" }}>{meses[i]}</span>
+        }>
+          <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
+            <div>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "hsl(113 48% 62%)" }}>34 kg</p>
+              <p style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>Peso médio atual</p>
             </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-          <span style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>Início: 22 kg</span>
-          <span style={{ fontSize: 11, color: "hsl(113 48% 55%)" }}>Atual: {resumo.pesoMedio} kg</span>
-        </div>
-      </div>
-
-      {/* ── Atenção imediata ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <p className="section-label" style={{ margin: 0 }}>Atenção imediata</p>
-        <button onClick={() => navigate("/rebanho")} style={{
-          background: "none", border: "none", color: "hsl(113 48% 55%)",
-          fontSize: 12, cursor: "pointer", padding: 0
-        }}>Ver todos →</button>
-      </div>
-
-      {alertas.map(a => {
-        const s = statusCfg[a.status as keyof typeof statusCfg];
-        const gmdOk = a.gmd >= 133;
-        return (
-          <div key={a.id} className="animal-row" onClick={() => navigate(`/rebanho/${a.id}`)}
-            style={{ cursor: "pointer" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: `${s.cor.replace("60%","10%").replace("62%","10%")}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, flexShrink: 0,
-              }}>
-                {a.sexo === "Macho" ? "♂" : "♀"}
-              </div>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 500, color: "hsl(95 30% 92%)", marginBottom: 2 }}>
-                  #{a.id}
-                </p>
-                <p style={{ fontSize: 12, color: "hsl(100 18% 50%)" }}>
-                  {a.peso} kg · {a.dias} dias · GMD: <span style={{ color: gmdOk ? "hsl(113 48% 55%)" : "hsl(36 75% 55%)" }}>{a.gmd}g</span>
-                </p>
-              </div>
+            <div>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "hsl(95 30% 85%)" }}>+12 kg</p>
+              <p style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>Ganho no período</p>
             </div>
-            <span className={s.cls}>{s.label}</span>
           </div>
-        );
-      })}
+          <Chart options={lineChartOptions} series={lineChartSeries} type="area" height={160} />
+        </Card>
 
-      <button className="btn-secondary" onClick={() => navigate("/rebanho")} style={{ marginTop: 16 }}>
-        Ver todo o rebanho
-      </button>
+        {/* Gráfico: GMD por mês */}
+        <Card title="GMD por mês" action={
+          <span style={{ fontSize: 11, color: "hsl(113 48% 50%)" }}>Meta: 133g/dia</span>
+        }>
+          <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
+            <div>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "hsl(113 48% 62%)" }}>{resumo.gmdMedio}g</p>
+              <p style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>GMD médio atual</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "hsl(36 75% 62%)" }}>R$ {resumo.margemMedia}</p>
+              <p style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>Margem por cabeça</p>
+            </div>
+          </div>
+          <Chart options={barChartOptions} series={barChartSeries} type="bar" height={160} />
+        </Card>
+      </div>
+
+      {/* ── Row 3: alertas + lote ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+
+        {/* Tabela de atenção imediata */}
+        <div style={{
+          background: "hsl(100 18% 13%)",
+          borderRadius: 14,
+          border: "0.5px solid hsl(100 18% 18%)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "16px 20px", borderBottom: "0.5px solid hsl(100 18% 18%)",
+          }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "hsl(95 30% 88%)" }}>Atenção imediata</p>
+            <button onClick={() => navigate("/rebanho")} style={{
+              background: "none", border: "0.5px solid hsl(100 18% 25%)",
+              borderRadius: 8, padding: "5px 12px",
+              color: "hsl(100 18% 55%)", fontSize: 12, cursor: "pointer",
+            }}>Ver todos</button>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["Animal", "Peso", "Dias", "GMD", "Status"].map(h => (
+                  <th key={h} style={{
+                    padding: "10px 20px", textAlign: "left",
+                    fontSize: 11, fontWeight: 500,
+                    color: "hsl(100 18% 38%)",
+                    textTransform: "uppercase", letterSpacing: "0.05em",
+                    borderBottom: "0.5px solid hsl(100 18% 18%)",
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {alertas.map((a, i) => {
+                const s = statusCfg[a.status as keyof typeof statusCfg];
+                const gmdOk = a.gmd >= 133;
+                return (
+                  <tr key={i} onClick={() => navigate(`/rebanho/${a.id}`)}
+                    style={{ cursor: "pointer", borderBottom: "0.5px solid hsl(100 18% 16%)" }}>
+                    <td style={{ padding: "12px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 8,
+                          background: "hsl(100 18% 20%)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 14,
+                        }}>{a.sexo === "M" ? "♂" : "♀"}</div>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: "hsl(95 30% 88%)" }}>#{a.id}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: "12px 20px", fontSize: 13, color: "hsl(95 30% 80%)" }}>{a.peso} kg</td>
+                    <td style={{ padding: "12px 20px", fontSize: 13, color: "hsl(95 30% 80%)" }}>{a.dias}</td>
+                    <td style={{ padding: "12px 20px", fontSize: 13,
+                      color: gmdOk ? "hsl(113 48% 55%)" : "hsl(36 75% 55%)",
+                      fontWeight: 500 }}>{a.gmd}g</td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <span className={s.cls}>{s.label}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Card de resumo financeiro */}
+        <Card title="Resumo financeiro">
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {[
+              { label: "Receita projetada (lote)",  valor: "R$ 25.420",   cor: "hsl(113 48% 62%)" },
+              { label: "Custo estimado total",       valor: "R$ 19.488",   cor: "hsl(95 30% 75%)"  },
+              { label: "Margem total projetada",     valor: "R$ 5.932",    cor: "hsl(36 75% 62%)"  },
+              { label: "Animais prontos × preço",    valor: "62 × R$ 410", cor: "hsl(95 30% 60%)"  },
+            ].map((item, i) => (
+              <div key={i}>
+                <p style={{ fontSize: 11, color: "hsl(100 18% 40%)", marginBottom: 3 }}>{item.label}</p>
+                <p style={{ fontSize: 16, fontWeight: 600, color: item.cor }}>{item.valor}</p>
+                {i < 3 && <div style={{ height: "0.5px", background: "hsl(100 18% 20%)", marginTop: 14 }} />}
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
