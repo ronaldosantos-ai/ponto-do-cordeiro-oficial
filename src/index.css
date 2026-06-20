@@ -8,97 +8,52 @@ html {
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 9% 12%;
+    /* V2 — Ponto do Cordeiro — dark-first, campo */
+    --background: 100 20% 11%;        /* #1C2416 */
+    --foreground: 95 30% 92%;         /* #E8F0E2 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 9% 12%;
+    --card: 100 18% 17%;              /* #2A3521 */
+    --card-foreground: 95 30% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 9% 12%;
+    --popover: 100 18% 17%;
+    --popover-foreground: 95 30% 92%;
 
-    --primary: 142 71% 35%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 113 48% 60%;           /* #7CC96A */
+    --primary-foreground: 100 20% 11%;
 
-    /* Design tokens for actions */
-    --positive: 142 71% 35%;
-    --positive-hover: 142 71% 30%;
+    --secondary: 100 18% 22%;
+    --secondary-foreground: 95 30% 92%;
 
-    --secondary: 220 9% 96%;
-    --secondary-foreground: 220 9% 12%;
+    --muted: 100 18% 22%;
+    --muted-foreground: 100 18% 55%;  /* #6B8A5E */
 
-    --muted: 220 9% 96%;
-    --muted-foreground: 220 9% 46%;
+    --accent: 100 18% 22%;
+    --accent-foreground: 95 30% 92%;
 
-    --accent: 220 9% 96%;
-    --accent-foreground: 220 9% 12%;
-
-    --destructive: 0 72% 51%;
+    --destructive: 0 65% 62%;         /* #E06060 */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 35%;
-    --success-foreground: 0 0% 100%;
+    --warning: 36 75% 60%;            /* #E8A84A */
+    --warning-foreground: 100 20% 11%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 142 71% 35%;
+    --success: 113 48% 60%;
+    --success-foreground: 100 20% 11%;
 
-    --radius: 0.5rem;
+    --border: 100 18% 22%;
+    --input: 100 18% 22%;
+    --ring: 113 48% 60%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 220 9% 26%;
-    --sidebar-primary: 142 71% 35%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 9% 96%;
-    --sidebar-accent-foreground: 220 9% 12%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 142 71% 35%;
-  }
+    --radius: 0.625rem;
 
-  .dark {
-    --background: 220 9% 12%;
-    --foreground: 0 0% 98%;
-
-    --card: 220 9% 15%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 220 9% 15%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 142 71% 45%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Design tokens for actions */
-    --positive: 142 71% 45%;
-    --positive-hover: 142 71% 40%;
-
-    --secondary: 220 9% 20%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 220 9% 20%;
-    --muted-foreground: 220 9% 65%;
-
-    --accent: 220 9% 20%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-
-    --border: 220 9% 20%;
-    --input: 220 9% 20%;
-    --ring: 142 71% 45%;
-
-    --sidebar-background: 220 9% 12%;
-    --sidebar-foreground: 220 9% 85%;
-    --sidebar-primary: 142 71% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 9% 20%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 220 9% 20%;
-    --sidebar-ring: 142 71% 45%;
+    /* Sidebar */
+    --sidebar-background: 100 20% 9%;
+    --sidebar-foreground: 95 30% 75%;
+    --sidebar-primary: 113 48% 60%;
+    --sidebar-primary-foreground: 100 20% 11%;
+    --sidebar-accent: 100 18% 17%;
+    --sidebar-accent-foreground: 95 30% 92%;
+    --sidebar-border: 100 18% 17%;
+    --sidebar-ring: 113 48% 60%;
   }
 }
 
@@ -107,50 +62,95 @@ html {
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
+  html, body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
 
 @layer components {
+  /* ── Status badges ── */
+  .badge-pronto {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: hsl(113 48% 14%);
+    color: hsl(113 48% 60%);
+  }
+  .badge-atencao {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: hsl(36 75% 18%);
+    color: hsl(36 75% 60%);
+  }
+  .badge-refugo {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: hsl(0 65% 18%);
+    color: hsl(0 65% 62%);
+  }
+
+  /* ── Stat cards ── */
+  .stat-card {
+    @apply rounded-xl p-3;
+    background: hsl(var(--card));
+  }
+  .stat-card-good {
+    background: hsl(113 48% 10%);
+  }
+  .stat-card-alert {
+    background: hsl(36 75% 13%);
+  }
+  .stat-card-danger {
+    background: hsl(0 65% 13%);
+  }
+
+  /* ── Animal row ── */
+  .animal-row {
+    @apply flex items-center justify-between rounded-xl px-3 py-3 mb-2;
+    background: hsl(var(--card));
+  }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 flex justify-around items-center px-2 py-3;
+    background: hsl(100 20% 9%);
+    border-top: 0.5px solid hsl(100 18% 20%);
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+  }
+
+  /* ── Page wrapper ── */
+  .page {
+    @apply min-h-screen px-4 pt-14 pb-24;
+    background: hsl(var(--background));
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    @apply text-xs font-medium uppercase tracking-wider mb-3;
+    color: hsl(113 48% 60%);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Input field ── */
+  .field {
+    @apply w-full rounded-xl px-4 py-3 text-sm outline-none;
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+    border: 0.5px solid hsl(100 18% 25%);
+  }
+  .field:focus {
+    border-color: hsl(113 48% 60%);
+  }
+
+  /* ── Primary button ── */
   .btn-primary {
-    @apply h-14 px-6 bg-primary text-primary-foreground font-semibold rounded-lg 
-           hover:bg-primary/90 active:scale-[0.98] transition-all duration-200
-           text-lg shadow-sm;
+    @apply w-full rounded-xl py-4 font-medium text-sm active:scale-[0.98] transition-all;
+    background: hsl(113 48% 60%);
+    color: hsl(100 20% 11%);
   }
 
-  .btn-destructive {
-    @apply h-14 px-6 bg-destructive text-destructive-foreground font-semibold rounded-lg 
-           hover:bg-destructive/90 active:scale-[0.98] transition-all duration-200
-           text-lg shadow-sm;
-  }
-
+  /* ── Secondary button ── */
   .btn-secondary {
-    @apply h-14 px-6 bg-secondary text-secondary-foreground font-semibold rounded-lg 
-           hover:bg-secondary/80 active:scale-[0.98] transition-all duration-200
-           text-lg border-2 border-border;
-  }
-
-  .input-field {
-    @apply h-14 w-full px-4 text-lg border-2 border-input rounded-lg
-           bg-background text-foreground placeholder:text-muted-foreground
-           focus:border-primary focus:ring-2 focus:ring-primary/20 
-           transition-all duration-200 outline-none;
-  }
-
-  .card-container {
-    @apply bg-card rounded-xl p-5 shadow-sm border border-border;
-  }
-
-  .page-container {
-    @apply min-h-screen bg-background px-4 py-6 pb-24 max-w-md md:max-w-sm lg:max-w-md mx-auto;
-  }
-
-  .section-title {
-    @apply text-xl font-bold text-foreground mb-4;
-  }
-
-  .text-label {
-    @apply text-sm font-medium text-muted-foreground mb-2 block;
+    @apply w-full rounded-xl py-4 font-medium text-sm active:scale-[0.98] transition-all;
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+    border: 0.5px solid hsl(100 18% 25%);
   }
 }
