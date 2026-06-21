@@ -1,45 +1,29 @@
-## Objetivo
+## Situação atual
 
-Adicionar duas novas landing pages públicas em `/landing-v3` e `/landing-v4` para testes A/B, sem afetar a landing atual em `/`.
+Verifiquei o backend (Lovable Cloud / Supabase) e a sua conta **já está configurada como super admin** — não há código a alterar.
 
-## Recomendação de formato
+- **Usuário**: ronaldosantosjp01@gmail.com  
+- **ID**: 4ccc39c6-a7e4-4f1f-a031-98fed0bd00cf  
+- **E-mail confirmado**: sim  
+- **Role no banco** (`public.user_roles`): `admin`  
+- **Premium**: liberado automaticamente — a função `is_premium_user` já trata `admin` como Premium vitalício
+- **Acesso ao painel `/admin/*`**: liberado via `AdminRoute` + `has_role(uid, 'admin')`
 
-**Converter ambas para componentes React (TSX)** em `src/pages/`. Motivos:
-- Consistência com o resto do app (todas as outras páginas são React).
-- Permite reaproveitar componentes shadcn, navegação via React Router (`navigate("/auth")`), e o sistema de auth/premium.
-- Para a página em HTML puro com `<style>` inline: dá para preservar 100% do visual injetando o CSS dentro de uma tag `<style>` no próprio componente (ou em um arquivo `.css` importado). Zero perda visual.
-- HTML estático em `/public` funcionaria, mas perderia integração com rotas SPA, auth e analytics — não recomendo.
+Nos logs de autenticação também aparece um **login bem-sucedido às 11:29** vindo da preview, confirmando que o fluxo de auth está funcionando. As falhas anteriores (`400 invalid_credentials`) foram apenas tentativas com senha errada.
 
-## Plano de implementação
+## Plano
 
-### 1. Criar os arquivos das páginas
-- `src/pages/LandingV3.tsx` — receberá o código da primeira página (HTML puro convertido para JSX, com `<style>` preservado).
-- `src/pages/LandingV4.tsx` — receberá o código da segunda página (já em React, só adaptar imports).
+Como nada precisa ser corrigido no código nem nas permissões, o plano é apenas **destravar seu login na preview**:
 
-### 2. Registrar rotas em `src/App.tsx`
-Adicionar dentro de `<Routes>`:
-```tsx
-<Route path="/landing-v3" element={<LandingV3 />} />
-<Route path="/landing-v4" element={<LandingV4 />} />
-```
-E os imports correspondentes no topo.
+1. **Disparar um e-mail de redefinição de senha** para ronaldosantosjp01@gmail.com pela tela `/auth → "Esqueci minha senha"` (ou eu posso acionar via backend após sua confirmação).
+2. Você define uma senha nova pelo link recebido.
+3. Faz login na preview — você cairá direto no fluxo Premium e terá acesso ao menu `/admin`.
 
-### 3. Fluxo para colar o código
-Como o código virá em duas mensagens, o fluxo será:
-1. Aprovar este plano → entro em modo build e crio a estrutura vazia das duas páginas + rotas.
-2. Você cola o código da **Página 1** → eu colo dentro de `LandingV3.tsx`, ajustando:
-   - Tags HTML puras (`<a href>`) trocadas por `<Link>` ou `navigate()` do React Router quando apontarem para rotas internas.
-   - `class=` → `className=`.
-   - `<style>` inline preservado dentro do componente.
-   - Imagens/logos: trocar caminhos para os assets do projeto (`src/assets/...`) quando aplicável.
-3. Você cola o código da **Página 2** → mesmo processo em `LandingV4.tsx`.
+### Se preferir não usar reset por e-mail
+Como alternativa eu posso, em modo build:
+- Confirmar/forçar reconfirmação do e-mail no backend, ou
+- Definir uma senha temporária via Admin API (em uma edge function de uso único) que você troca depois.
 
-### 4. Navegação
-As páginas ficam **acessíveis apenas por URL direta** (sem link no menu/footer), já que são para teste A/B. Você distribui os links manualmente.
+## Nada será alterado no código
 
-### 5. Verificação
-Abro `/landing-v3` e `/landing-v4` no preview para conferir o visual antes de finalizar.
-
-## O que NÃO será alterado
-- Landing atual em `/` (LandingV2) — permanece intacta.
-- Preços, checkout Ticto, BottomNav, auth, premium — sem mudanças.
+Nenhum arquivo do projeto precisa ser editado para essa tarefa. Se você confirmar este plano, eu apenas executo o passo escolhido (reset de senha por padrão).
