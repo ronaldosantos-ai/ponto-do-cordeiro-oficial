@@ -23,12 +23,14 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Redirect if already logged in
+  const V2_URL = 'https://ponto-do-cordeiro-oficial-git-v2-ronaldo-santos-projects.vercel.app/dashboard';
+
+  // Redirect if already logged in → V2 (nova plataforma)
   useEffect(() => {
     if (!authLoading && user) {
-      navigate('/premium');
+      window.location.href = V2_URL;
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading]);
 
   const validateEmail = (value: string): string | null => {
     const result = emailSchema.safeParse(value);
@@ -129,7 +131,7 @@ const Auth = () => {
         }
 
         toast({ title: "✅ Login realizado com sucesso!" });
-        navigate('/premium');
+        window.location.href = V2_URL;
       } else {
         const { error } = await signUp(email.trim(), password);
         
@@ -151,7 +153,7 @@ const Auth = () => {
           title: "✅ Conta criada com sucesso!",
           description: "Você já pode usar o app"
         });
-        navigate('/premium');
+        window.location.href = V2_URL;
       }
     } catch (error) {
       toast({
