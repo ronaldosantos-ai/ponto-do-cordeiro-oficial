@@ -1,3 +1,4 @@
+import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -130,6 +131,7 @@ export default function PesoEquilibrio() {
 
   return (
     <div className="page">
+      <BotaoVoltar para="/relatorios" />
       <style>{`
         .eq-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
         @media (max-width: 767px) { .eq-grid { grid-template-columns: 1fr 1fr; } }
