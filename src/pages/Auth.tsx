@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
-const Auth = () => {
+export default function Auth() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signIn, signUp, resetPassword } = useAuth();
-  const [mode, setMode] = useState<'login'|'signup'|'forgot'>('login');
-  const [email, setEmail] = useState('');
+  const [mode, setMode]       = useState<'login'|'signup'|'forgot'>('login');
+  const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
+  const [nome, setNome]       = useState('');
   const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [erro, setErro]       = useState<string | null>(null);
+  const [msg, setMsg]         = useState<string | null>(null);
 
-  // Redirecionar para dashboard se ja logado
   useEffect(() => {
     if (!authLoading && user) navigate('/dashboard', { replace: true });
   }, [user, authLoading, navigate]);
@@ -21,10 +22,9 @@ const Auth = () => {
     e.preventDefault();
     setErro(null);
     setMsg(null);
-    if (!email) { setErro('Email obrigatório'); return; }
+    if (!email.trim()) { setErro('Email obrigatório'); return; }
 
     setLoading(true);
-
     try {
       if (mode === 'forgot') {
         const { error } = await resetPassword(email.trim());
@@ -36,20 +36,28 @@ const Auth = () => {
 
       if (!password) { setErro('Senha obrigatória'); return; }
 
-      if (mode === 'login') {
+      if (mode === 'signup') {
+        // Cadastro com nome completo
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: { full_name: nome.trim() || null },
+            emailRedirectTo: window.location.origin + '/dashboard',
+          },
+        });
+        if (error) throw error;
+        setMsg('Conta criada! Verifique seu email para confirmar o cadastro.');
+      } else {
         const { error } = await signIn(email.trim(), password);
         if (error) throw error;
         navigate('/dashboard', { replace: true });
-      } else {
-        const { error } = await signUp(email.trim(), password);
-        if (error) throw error;
-        setMsg('Conta criada! Verifique seu email para confirmar.');
       }
     } catch (e: any) {
-      const msg = e?.message ?? '';
-      if (msg.includes('Invalid login')) setErro('Email ou senha incorretos');
-      else if (msg.includes('already registered')) setErro('Email já cadastrado');
-      else setErro(msg || 'Erro ao autenticar');
+      const m = e?.message ?? '';
+      if (m.includes('Invalid login'))       setErro('Email ou senha incorretos');
+      else if (m.includes('already registered')) setErro('Email já cadastrado');
+      else setErro(m || 'Erro ao autenticar');
     } finally {
       setLoading(false);
     }
@@ -72,12 +80,12 @@ const Auth = () => {
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <p style={{ fontSize: 32, marginBottom: 8 }}>🐑</p>
+          <p style={{ fontSize: 36, marginBottom: 8 }}>🐑</p>
           <p style={{ fontSize: 20, fontWeight: 600, color: 'hsl(113,48%,62%)' }}>
             Ponto do Cordeiro
           </p>
           <p style={{ fontSize: 13, color: 'hsl(100,18%,45%)', marginTop: 4 }}>
-            {mode === 'login' ? 'Entre na sua conta' :
+            {mode === 'login'  ? 'Entre na sua conta' :
              mode === 'signup' ? 'Crie sua conta gratuita' :
              'Recuperar senha'}
           </p>
@@ -97,6 +105,19 @@ const Auth = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* Nome completo — só no cadastro */}
+          {mode === 'signup' && (
+            <input
+              className="field"
+              type="text"
+              placeholder="Nome completo"
+              value={nome}
+              onChange={e => setNome(e.target.value)}
+              autoComplete="name"
+            />
+          )}
+
           <input
             className="field"
             type="email"
@@ -105,6 +126,7 @@ const Auth = () => {
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
+
           {mode !== 'forgot' && (
             <input
               className="field"
@@ -115,26 +137,27 @@ const Auth = () => {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
           )}
+
           <button type="submit" className="btn-primary"
             disabled={loading} style={{ opacity: loading ? 0.7 : 1, marginTop: 4 }}>
             {loading ? 'Aguarde...' :
-             mode === 'login' ? 'Entrar' :
+             mode === 'login'  ? 'Entrar' :
              mode === 'signup' ? 'Criar conta' :
              'Enviar email de recuperação'}
           </button>
         </form>
 
         {/* Links */}
-        <div style={{ textAlign: 'center', marginTop: 20, display: 'flex',
-          flexDirection: 'column', gap: 10 }}>
+        <div style={{ textAlign: 'center', marginTop: 20,
+          display: 'flex', flexDirection: 'column', gap: 10 }}>
           {mode === 'login' && (
             <>
-              <button onClick={() => { setMode('forgot'); setErro(null); }}
+              <button onClick={() => { setMode('forgot'); setErro(null); setMsg(null); }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer',
                   color: 'hsl(100,18%,45%)', fontSize: 13 }}>
                 Esqueci minha senha
               </button>
-              <button onClick={() => { setMode('signup'); setErro(null); }}
+              <button onClick={() => { setMode('signup'); setErro(null); setMsg(null); }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer',
                   color: 'hsl(113,48%,55%)', fontSize: 13, fontWeight: 500 }}>
                 Criar conta gratuita
@@ -142,7 +165,7 @@ const Auth = () => {
             </>
           )}
           {mode !== 'login' && (
-            <button onClick={() => { setMode('login'); setErro(null); }}
+            <button onClick={() => { setMode('login'); setErro(null); setMsg(null); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer',
                 color: 'hsl(100,18%,45%)', fontSize: 13 }}>
               Voltar para o login
@@ -152,6 +175,4 @@ const Auth = () => {
       </div>
     </div>
   );
-};
-
-export default Auth;
+}
