@@ -131,7 +131,7 @@ const Auth = () => {
         }
 
         toast({ title: "✅ Login realizado com sucesso!" });
-        navigate('/premium');
+        window.location.href = V2_URL;
       } else {
         const { error } = await signUp(email.trim(), password);
         
