@@ -8,38 +8,73 @@ const V2_URL = "https://ponto-do-cordeiro-oficial-git-v2-ronaldo-santos-projects
 export default function Auth() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signIn } = useAuth();
-  const [mode, setMode]         = useState<'login'|'signup'|'forgot'>('login');
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [nome, setNome]         = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [erro, setErro]         = useState<string | null>(null);
-  const [msg, setMsg]           = useState<string | null>(null);
 
+  const [mode, setMode]           = useState<'login'|'signup'|'forgot'|'nova_senha'>('login');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirma, setConfirma]   = useState('');
+  const [nome, setNome]           = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [erro, setErro]           = useState<string | null>(null);
+  const [msg, setMsg]             = useState<string | null>(null);
+
+  // Detectar evento PASSWORD_RECOVERY quando usuário chega pelo link do email
   useEffect(() => {
-    if (!authLoading && user) navigate('/dashboard', { replace: true });
-  }, [user, authLoading, navigate]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setMode('nova_senha');
+      }
+      if (event === 'SIGNED_IN' && mode !== 'nova_senha') {
+        navigate('/dashboard', { replace: true });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Redirecionar se já logado
+  useEffect(() => {
+    if (!authLoading && user && mode !== 'nova_senha') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, authLoading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
     setMsg(null);
-    if (!email.trim()) { setErro('Email obrigatório'); return; }
-
     setLoading(true);
+
     try {
+      // ── Nova senha após reset ──────────────────────────────
+      if (mode === 'nova_senha') {
+        if (!novaSenha) { setErro('Digite a nova senha'); setLoading(false); return; }
+        if (novaSenha !== confirma) { setErro('As senhas não coincidem'); setLoading(false); return; }
+        if (novaSenha.length < 6) { setErro('Senha deve ter pelo menos 6 caracteres'); setLoading(false); return; }
+
+        const { error } = await supabase.auth.updateUser({ password: novaSenha });
+        if (error) throw error;
+        setMsg('Senha redefinida com sucesso!');
+        setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
+        return;
+      }
+
+      if (!email.trim()) { setErro('Email obrigatório'); setLoading(false); return; }
+
+      // ── Recuperar senha ───────────────────────────────────
       if (mode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: V2_URL + '/auth',
         });
         if (error) throw error;
-        setMsg('Email de recuperação enviado. Verifique sua caixa de entrada.');
+        setMsg('Email enviado! Verifique sua caixa de entrada e clique no link.');
         setMode('login');
         return;
       }
 
-      if (!password) { setErro('Senha obrigatória'); return; }
+      if (!password) { setErro('Senha obrigatória'); setLoading(false); return; }
 
+      // ── Cadastro ──────────────────────────────────────────
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
@@ -51,15 +86,19 @@ export default function Auth() {
         });
         if (error) throw error;
         setMsg('Conta criada! Verifique seu email para confirmar o cadastro.');
-      } else {
-        const { error } = await signIn(email.trim(), password);
-        if (error) throw error;
-        navigate('/dashboard', { replace: true });
+        return;
       }
+
+      // ── Login ─────────────────────────────────────────────
+      const { error } = await signIn(email.trim(), password);
+      if (error) throw error;
+      navigate('/dashboard', { replace: true });
+
     } catch (e: any) {
       const m = e?.message ?? '';
-      if (m.includes('Invalid login'))          setErro('Email ou senha incorretos');
+      if (m.includes('Invalid login'))           setErro('Email ou senha incorretos');
       else if (m.includes('already registered')) setErro('Email já cadastrado');
+      else if (m.includes('Email not confirmed')) setErro('Confirme seu email antes de entrar');
       else setErro(m || 'Erro ao autenticar');
     } finally {
       setLoading(false);
@@ -88,9 +127,10 @@ export default function Auth() {
             Ponto do Cordeiro
           </p>
           <p style={{ fontSize: 13, color: 'hsl(100,18%,45%)', marginTop: 4 }}>
-            {mode === 'login'  ? 'Entre na sua conta' :
-             mode === 'signup' ? 'Crie sua conta gratuita' :
-             'Recuperar senha'}
+            {mode === 'login'      ? 'Entre na sua conta'        :
+             mode === 'signup'     ? 'Crie sua conta gratuita'   :
+             mode === 'forgot'     ? 'Recuperar senha'           :
+             'Criar nova senha'}
           </p>
         </div>
 
@@ -108,23 +148,45 @@ export default function Auth() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {mode === 'signup' && (
-            <input className="field" type="text" placeholder="Nome completo"
-              value={nome} onChange={e => setNome(e.target.value)} autoComplete="name" />
+
+          {/* Nova senha */}
+          {mode === 'nova_senha' && (
+            <>
+              <input className="field" type="password" placeholder="Nova senha (mín. 6 caracteres)"
+                value={novaSenha} onChange={e => setNovaSenha(e.target.value)}
+                autoComplete="new-password" />
+              <input className="field" type="password" placeholder="Confirmar nova senha"
+                value={confirma} onChange={e => setConfirma(e.target.value)}
+                autoComplete="new-password" />
+            </>
           )}
-          <input className="field" type="email" placeholder="Email"
-            value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
-          {mode !== 'forgot' && (
-            <input className="field" type="password" placeholder="Senha"
-              value={password} onChange={e => setPassword(e.target.value)}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+
+          {/* Campos normais */}
+          {mode !== 'nova_senha' && (
+            <>
+              {mode === 'signup' && (
+                <input className="field" type="text" placeholder="Nome completo"
+                  value={nome} onChange={e => setNome(e.target.value)}
+                  autoComplete="name" />
+              )}
+              <input className="field" type="email" placeholder="Email"
+                value={email} onChange={e => setEmail(e.target.value)}
+                autoComplete="email" />
+              {mode !== 'forgot' && (
+                <input className="field" type="password" placeholder="Senha"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+              )}
+            </>
           )}
+
           <button type="submit" className="btn-primary"
             disabled={loading} style={{ opacity: loading ? 0.7 : 1, marginTop: 4 }}>
             {loading ? 'Aguarde...' :
-             mode === 'login'  ? 'Entrar' :
-             mode === 'signup' ? 'Criar conta' :
-             'Enviar email de recuperação'}
+             mode === 'login'      ? 'Entrar'                       :
+             mode === 'signup'     ? 'Criar conta'                  :
+             mode === 'forgot'     ? 'Enviar email de recuperação'  :
+             'Salvar nova senha'}
           </button>
         </form>
 
@@ -145,7 +207,7 @@ export default function Auth() {
               </button>
             </>
           )}
-          {mode !== 'login' && (
+          {(mode === 'signup' || mode === 'forgot') && (
             <button onClick={() => { setMode('login'); setErro(null); setMsg(null); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer',
                 color: 'hsl(100,18%,45%)', fontSize: 13 }}>
