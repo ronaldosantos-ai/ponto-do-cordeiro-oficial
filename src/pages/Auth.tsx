@@ -5,6 +5,41 @@ import { supabase } from '@/integrations/supabase/client';
 
 const V2_URL = "https://ponto-do-cordeiro-oficial-git-v2-ronaldo-santos-projects.vercel.app";
 
+function InputSenha({ placeholder, value, onChange, autoComplete }: {
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete?: string;
+}) {
+  const [visivel, setVisivel] = useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        className="field"
+        type={visivel ? 'text' : 'password'}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        autoComplete={autoComplete}
+        style={{ paddingRight: 44 }}
+      />
+      <button
+        type="button"
+        onClick={() => setVisivel(v => !v)}
+        style={{
+          position: 'absolute', right: 12, top: '50%',
+          transform: 'translateY(-50%)',
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: 'hsl(100,18%,45%)', fontSize: 16, padding: 4,
+          display: 'flex', alignItems: 'center',
+        }}
+      >
+        {visivel ? '🙈' : '👁️'}
+      </button>
+    </div>
+  );
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signIn } = useAuth();
@@ -19,20 +54,13 @@ export default function Auth() {
   const [erro, setErro]           = useState<string | null>(null);
   const [msg, setMsg]             = useState<string | null>(null);
 
-  // Detectar evento PASSWORD_RECOVERY quando usuário chega pelo link do email
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setMode('nova_senha');
-      }
-      if (event === 'SIGNED_IN' && mode !== 'nova_senha') {
-        navigate('/dashboard', { replace: true });
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') setMode('nova_senha');
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  // Redirecionar se já logado
   useEffect(() => {
     if (!authLoading && user && mode !== 'nova_senha') {
       navigate('/dashboard', { replace: true });
@@ -46,35 +74,31 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // ── Nova senha após reset ──────────────────────────────
       if (mode === 'nova_senha') {
-        if (!novaSenha) { setErro('Digite a nova senha'); setLoading(false); return; }
-        if (novaSenha !== confirma) { setErro('As senhas não coincidem'); setLoading(false); return; }
-        if (novaSenha.length < 6) { setErro('Senha deve ter pelo menos 6 caracteres'); setLoading(false); return; }
-
+        if (!novaSenha)               { setErro('Digite a nova senha'); return; }
+        if (novaSenha !== confirma)   { setErro('As senhas não coincidem'); return; }
+        if (novaSenha.length < 6)     { setErro('Mínimo 6 caracteres'); return; }
         const { error } = await supabase.auth.updateUser({ password: novaSenha });
         if (error) throw error;
-        setMsg('Senha redefinida com sucesso!');
+        setMsg('Senha redefinida! Redirecionando...');
         setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
         return;
       }
 
-      if (!email.trim()) { setErro('Email obrigatório'); setLoading(false); return; }
+      if (!email.trim()) { setErro('Email obrigatório'); return; }
 
-      // ── Recuperar senha ───────────────────────────────────
       if (mode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: V2_URL + '/auth',
         });
         if (error) throw error;
-        setMsg('Email enviado! Verifique sua caixa de entrada e clique no link.');
+        setMsg('Email enviado! Verifique sua caixa de entrada.');
         setMode('login');
         return;
       }
 
-      if (!password) { setErro('Senha obrigatória'); setLoading(false); return; }
+      if (!password) { setErro('Senha obrigatória'); return; }
 
-      // ── Cadastro ──────────────────────────────────────────
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
@@ -85,19 +109,18 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        setMsg('Conta criada! Verifique seu email para confirmar o cadastro.');
+        setMsg('Conta criada! Verifique seu email para confirmar.');
         return;
       }
 
-      // ── Login ─────────────────────────────────────────────
       const { error } = await signIn(email.trim(), password);
       if (error) throw error;
       navigate('/dashboard', { replace: true });
 
     } catch (e: any) {
       const m = e?.message ?? '';
-      if (m.includes('Invalid login'))           setErro('Email ou senha incorretos');
-      else if (m.includes('already registered')) setErro('Email já cadastrado');
+      if (m.includes('Invalid login'))            setErro('Email ou senha incorretos');
+      else if (m.includes('already registered'))  setErro('Email já cadastrado');
       else if (m.includes('Email not confirmed')) setErro('Confirme seu email antes de entrar');
       else setErro(m || 'Erro ao autenticar');
     } finally {
@@ -120,21 +143,19 @@ export default function Auth() {
       padding: '24px 16px' }}>
       <div style={{ width: '100%', maxWidth: 380 }}>
 
-        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <p style={{ fontSize: 36, marginBottom: 8 }}>🐑</p>
           <p style={{ fontSize: 20, fontWeight: 600, color: 'hsl(113,48%,62%)' }}>
             Ponto do Cordeiro
           </p>
           <p style={{ fontSize: 13, color: 'hsl(100,18%,45%)', marginTop: 4 }}>
-            {mode === 'login'      ? 'Entre na sua conta'        :
-             mode === 'signup'     ? 'Crie sua conta gratuita'   :
-             mode === 'forgot'     ? 'Recuperar senha'           :
+            {mode === 'login'      ? 'Entre na sua conta'       :
+             mode === 'signup'     ? 'Crie sua conta gratuita'  :
+             mode === 'forgot'     ? 'Recuperar senha'          :
              'Criar nova senha'}
           </p>
         </div>
 
-        {/* Mensagens */}
         {erro && (
           <div style={{ background: 'hsl(0,65%,12%)', border: '0.5px solid hsl(0,65%,30%)',
             borderRadius: 10, padding: '12px 14px', marginBottom: 16,
@@ -146,36 +167,32 @@ export default function Auth() {
             color: 'hsl(113,48%,62%)', fontSize: 13 }}>{msg}</div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* Nova senha */}
           {mode === 'nova_senha' && (
             <>
-              <input className="field" type="password" placeholder="Nova senha (mín. 6 caracteres)"
-                value={novaSenha} onChange={e => setNovaSenha(e.target.value)}
-                autoComplete="new-password" />
-              <input className="field" type="password" placeholder="Confirmar nova senha"
-                value={confirma} onChange={e => setConfirma(e.target.value)}
-                autoComplete="new-password" />
+              <InputSenha placeholder="Nova senha (mín. 6 caracteres)"
+                value={novaSenha} onChange={setNovaSenha} autoComplete="new-password" />
+              <InputSenha placeholder="Confirmar nova senha"
+                value={confirma} onChange={setConfirma} autoComplete="new-password" />
             </>
           )}
 
-          {/* Campos normais */}
           {mode !== 'nova_senha' && (
             <>
               {mode === 'signup' && (
                 <input className="field" type="text" placeholder="Nome completo"
-                  value={nome} onChange={e => setNome(e.target.value)}
-                  autoComplete="name" />
+                  value={nome} onChange={e => setNome(e.target.value)} autoComplete="name" />
               )}
               <input className="field" type="email" placeholder="Email"
-                value={email} onChange={e => setEmail(e.target.value)}
-                autoComplete="email" />
+                value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
               {mode !== 'forgot' && (
-                <input className="field" type="password" placeholder="Senha"
-                  value={password} onChange={e => setPassword(e.target.value)}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+                <InputSenha
+                  placeholder="Senha"
+                  value={password}
+                  onChange={setPassword}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                />
               )}
             </>
           )}
@@ -183,14 +200,13 @@ export default function Auth() {
           <button type="submit" className="btn-primary"
             disabled={loading} style={{ opacity: loading ? 0.7 : 1, marginTop: 4 }}>
             {loading ? 'Aguarde...' :
-             mode === 'login'      ? 'Entrar'                       :
-             mode === 'signup'     ? 'Criar conta'                  :
-             mode === 'forgot'     ? 'Enviar email de recuperação'  :
+             mode === 'login'      ? 'Entrar'                      :
+             mode === 'signup'     ? 'Criar conta'                 :
+             mode === 'forgot'     ? 'Enviar email de recuperação' :
              'Salvar nova senha'}
           </button>
         </form>
 
-        {/* Links */}
         <div style={{ textAlign: 'center', marginTop: 20,
           display: 'flex', flexDirection: 'column', gap: 10 }}>
           {mode === 'login' && (
