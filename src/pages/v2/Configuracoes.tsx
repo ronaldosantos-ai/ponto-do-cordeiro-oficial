@@ -1,3 +1,4 @@
+import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,6 +103,7 @@ export default function Configuracoes() {
 
   return (
     <div className="page">
+      <BotaoVoltar para="/dashboard" />
 
       {/* Perfil do usuário */}
       <div style={{ background: "hsl(100,18%,13%)", borderRadius: 14,
