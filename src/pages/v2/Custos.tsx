@@ -1,3 +1,4 @@
+import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +64,7 @@ export default function Custos() {
 
   return (
     <div className="page">
+      <BotaoVoltar para="/relatorios" />
       {/* Resumo */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
         <div style={{ borderRadius: 12, padding: 14, background: "hsl(100,18%,15%)",
