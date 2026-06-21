@@ -1,3 +1,4 @@
+import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,7 @@ export default function Pesagem() {
 
   return (
     <div className="page">
+      <BotaoVoltar para="/rebanho" />
       <p style={{ fontSize: 14, color: "hsl(100,18%,50%)", marginBottom: 20 }}>
         Registre o peso. O GMD é calculado automaticamente.
       </p>
