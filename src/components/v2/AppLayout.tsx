@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 const NAV_ITEMS = [
   { path: "/dashboard",     icon: "⊞", label: "Início"     },
   { path: "/rebanho",       icon: "🐑", label: "Rebanho"    },
+  { path: "/lotes",         icon: "📋", label: "Lotes"      },
   { path: "/pesagem",       icon: "⚖️",  label: "Pesagem"    },
   { path: "/relatorios",    icon: "📊", label: "Relatórios" },
   { path: "/configuracoes", icon: "⚙️",  label: "Config."    },
