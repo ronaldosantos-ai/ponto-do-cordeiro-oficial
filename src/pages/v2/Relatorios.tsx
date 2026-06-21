@@ -79,12 +79,11 @@ export default function Relatorios() {
       icon: "📊",
       titulo: "Comparativo de mercado",
       descricao: "Rentabilidade: venda para frigorífico vs mercado informal",
-      rota: null,
+      rota: "/comparativo",
       destaque: null,
       cor: "hsl(95,30%,75%)",
       bg: "hsl(100,18%,15%)",
       borda: "hsl(100,18%,22%)",
-      emBreve: true,
     },
   ];
 
