@@ -1,3 +1,4 @@
+import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAlertas, TipoAlerta } from "@/hooks/useAlertas";
@@ -76,6 +77,7 @@ export default function Alertas() {
 
   return (
     <div className="page">
+      <BotaoVoltar para="/dashboard" />
 
       {/* Resumo */}
       {!loading && alertas.length > 0 && (
