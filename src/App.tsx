@@ -14,6 +14,8 @@ import Rebanho from "./pages/v2/Rebanho";
 import AnimalDetalhe from "./pages/v2/AnimalDetalhe";
 import AnimalNovo from "./pages/v2/AnimalNovo";
 import Pesagem from "./pages/v2/Pesagem";
+import Custos from "./pages/v2/Custos";
+import CustoNovo from "./pages/v2/CustoNovo";
 import Relatorios from "./pages/v2/Relatorios";
 import Configuracoes from "./pages/v2/Configuracoes";
 import AdminDashboardV2 from "./pages/admin/AdminDashboardV2";
@@ -32,15 +34,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Publicas */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
-
-            {/* Admin */}
             <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
 
-            {/* App protegido */}
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -48,6 +46,8 @@ const App = () => (
               <Route path="/rebanho/novo" element={<AnimalNovo />} />
               <Route path="/rebanho/:id" element={<AnimalDetalhe />} />
               <Route path="/pesagem" element={<Pesagem />} />
+              <Route path="/custos" element={<Custos />} />
+              <Route path="/custos/novo" element={<CustoNovo />} />
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>
