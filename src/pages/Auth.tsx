@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
+const V2_URL = "https://ponto-do-cordeiro-oficial-git-v2-ronaldo-santos-projects.vercel.app";
+
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signIn, signUp, resetPassword } = useAuth();
-  const [mode, setMode]       = useState<'login'|'signup'|'forgot'>('login');
-  const [email, setEmail]     = useState('');
+  const { user, loading: authLoading, signIn } = useAuth();
+  const [mode, setMode]         = useState<'login'|'signup'|'forgot'>('login');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [nome, setNome]       = useState('');
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro]       = useState<string | null>(null);
-  const [msg, setMsg]         = useState<string | null>(null);
+  const [nome, setNome]         = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [erro, setErro]         = useState<string | null>(null);
+  const [msg, setMsg]           = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && user) navigate('/dashboard', { replace: true });
@@ -27,7 +29,9 @@ export default function Auth() {
     setLoading(true);
     try {
       if (mode === 'forgot') {
-        const { error } = await resetPassword(email.trim());
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: V2_URL + '/auth',
+        });
         if (error) throw error;
         setMsg('Email de recuperação enviado. Verifique sua caixa de entrada.');
         setMode('login');
@@ -37,13 +41,12 @@ export default function Auth() {
       if (!password) { setErro('Senha obrigatória'); return; }
 
       if (mode === 'signup') {
-        // Cadastro com nome completo
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
             data: { full_name: nome.trim() || null },
-            emailRedirectTo: window.location.origin + '/dashboard',
+            emailRedirectTo: V2_URL + '/dashboard',
           },
         });
         if (error) throw error;
@@ -55,7 +58,7 @@ export default function Auth() {
       }
     } catch (e: any) {
       const m = e?.message ?? '';
-      if (m.includes('Invalid login'))       setErro('Email ou senha incorretos');
+      if (m.includes('Invalid login'))          setErro('Email ou senha incorretos');
       else if (m.includes('already registered')) setErro('Email já cadastrado');
       else setErro(m || 'Erro ao autenticar');
     } finally {
@@ -105,39 +108,17 @@ export default function Auth() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          {/* Nome completo — só no cadastro */}
           {mode === 'signup' && (
-            <input
-              className="field"
-              type="text"
-              placeholder="Nome completo"
-              value={nome}
-              onChange={e => setNome(e.target.value)}
-              autoComplete="name"
-            />
+            <input className="field" type="text" placeholder="Nome completo"
+              value={nome} onChange={e => setNome(e.target.value)} autoComplete="name" />
           )}
-
-          <input
-            className="field"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-
+          <input className="field" type="email" placeholder="Email"
+            value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
           {mode !== 'forgot' && (
-            <input
-              className="field"
-              type="password"
-              placeholder="Senha"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            />
+            <input className="field" type="password" placeholder="Senha"
+              value={password} onChange={e => setPassword(e.target.value)}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
           )}
-
           <button type="submit" className="btn-primary"
             disabled={loading} style={{ opacity: loading ? 0.7 : 1, marginTop: 4 }}>
             {loading ? 'Aguarde...' :
