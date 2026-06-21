@@ -1,136 +1,196 @@
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock — será substituído por query Supabase
-const dados: Record<string, any> = {
-  "A-0042": {
-    id: "A-0042", sexo: "Macho", raca: "Santa Inês",
-    nascimento: "2025-12-18", peso_inicial: 4.2,
-    lote: "Verão", mae: "M-0011", pai: "P-0003",
-    pesagens: [
-      { data: "2026-01-15", peso: 12.0 },
-      { data: "2026-02-15", peso: 20.5 },
-      { data: "2026-03-15", peso: 27.1 },
-      { data: "2026-04-15", peso: 30.8 },
-      { data: "2026-05-15", peso: 34.2 },
-    ],
-    status: "atencao",
-    observacoes: "Verificar altura do cocho — dominância no lote",
-  },
-};
+interface Pesagem {
+  id: string;
+  data_pesagem: string;
+  peso_kg: number;
+  observacoes: string | null;
+}
 
-function calcGMD(pesagens: {data: string, peso: number}[]) {
-  if (pesagens.length < 2) return null;
-  const first = pesagens[0];
-  const last = pesagens[pesagens.length - 1];
-  const dias = Math.round(
-    (new Date(last.data).getTime() - new Date(first.data).getTime()) / 86400000
-  );
-  return ((last.peso - first.peso) / dias * 1000).toFixed(0);
+interface AnimalCompleto {
+  id: string;
+  brinco: string;
+  sexo: string;
+  raca: string | null;
+  data_nascimento: string | null;
+  brinco_mae: string | null;
+  brinco_pai: string | null;
+  observacoes: string | null;
+  lotes: { nome: string } | null;
+  pesagens: Pesagem[];
 }
 
 export default function AnimalDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const animal = dados[id ?? ""] ?? dados["A-0042"];
-  const gmd = calcGMD(animal.pesagens);
-  const metaGMD = 133;
-  const gmdOk = gmd && parseInt(gmd) >= metaGMD;
+  const [animal, setAnimal] = useState<AnimalCompleto | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    carregar();
+  }, [id]);
+
+  async function carregar() {
+    setLoading(true);
+    const { data } = await supabase
+      .from("animais")
+      .select("*, lotes(nome), pesagens(id, data_pesagem, peso_kg, observacoes)")
+      .eq("id", id)
+      .single();
+    setAnimal(data as any);
+    setLoading(false);
+  }
+
+  if (loading) return (
+    <div className="page" style={{ textAlign: "center", paddingTop: 60 }}>
+      <p style={{ color: "hsl(100,18%,45%)" }}>Carregando...</p>
+    </div>
+  );
+
+  if (!animal) return (
+    <div className="page" style={{ textAlign: "center", paddingTop: 60 }}>
+      <p style={{ color: "hsl(0,65%,55%)" }}>Animal não encontrado</p>
+      <button className="btn-secondary" onClick={() => navigate("/rebanho")}
+        style={{ marginTop: 16, maxWidth: 200, margin: "16px auto 0" }}>
+        Voltar
+      </button>
+    </div>
+  );
+
+  const pesagens = [...(animal.pesagens ?? [])].sort(
+    (a, b) => new Date(a.data_pesagem).getTime() - new Date(b.data_pesagem).getTime()
+  );
+
+  const primeira  = pesagens[0];
+  const ultima    = pesagens[pesagens.length - 1];
+  const pesoAtual = ultima?.peso_kg ?? null;
+
+  let gmd: number | null = null;
+  let dias: number | null = null;
+  if (primeira && ultima && primeira.id !== ultima.id) {
+    dias = Math.round(
+      (new Date(ultima.data_pesagem).getTime() - new Date(primeira.data_pesagem).getTime()) / 86400000
+    );
+    if (dias > 0) gmd = Math.round(((ultima.peso_kg - primeira.peso_kg) / dias) * 1000);
+  }
+
+  const gmdOk = gmd !== null && gmd >= 133;
+  let status = "normal";
+  if (pesoAtual !== null && pesoAtual >= 40)          status = "pronto";
+  else if (gmd !== null && gmd < 133 * 0.7)           status = "refugo";
+  else if (gmd !== null && gmd < 133)                 status = "atencao";
+
+  const badgeCls = status === "pronto" ? "badge-pronto"
+    : status === "atencao" ? "badge-atencao"
+    : status === "refugo"  ? "badge-refugo"
+    : "badge-pronto";
+  const badgeLabel = status === "pronto" ? "Pronto"
+    : status === "atencao" ? "Atenção"
+    : status === "refugo"  ? "Refugo"
+    : "Normal";
 
   return (
     <div className="page">
-      {/* Voltar */}
-      <button
-        onClick={() => navigate("/rebanho")}
-        style={{ background: "none", border: "none", color: "hsl(113 48% 60%)",
-          fontSize: 14, cursor: "pointer", marginBottom: 16, padding: 0 }}
-      >
+      <button onClick={() => navigate("/rebanho")} style={{
+        background: "none", border: "none", color: "hsl(113,48%,60%)",
+        fontSize: 14, cursor: "pointer", marginBottom: 16, padding: 0 }}>
         ← Rebanho
       </button>
 
       {/* Identidade */}
-      <div className="stat-card" style={{ marginBottom: 12 }}>
+      <div className="stat-card" style={{ padding: 16, marginBottom: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <p style={{ fontSize: 20, fontWeight: 500, color: "hsl(95 30% 92%)" }}>
-              #{animal.id}
+            <p style={{ fontSize: 22, fontWeight: 600, color: "hsl(95,30%,92%)" }}>
+              #{animal.brinco}
             </p>
-            <p style={{ fontSize: 13, color: "hsl(100 18% 55%)", marginTop: 4 }}>
-              {animal.sexo} · {animal.raca} · Lote {animal.lote}
+            <p style={{ fontSize: 13, color: "hsl(100,18%,55%)", marginTop: 4 }}>
+              {animal.sexo === "M" ? "Macho" : "Fêmea"}
+              {animal.raca ? " · " + animal.raca : ""}
+              {animal.lotes?.nome ? " · Lote " + animal.lotes.nome : ""}
             </p>
           </div>
-          <span className={
-            animal.status === "pronto" ? "badge-pronto" :
-            animal.status === "atencao" ? "badge-atencao" : "badge-refugo"
-          }>
-            {animal.status === "pronto" ? "Pronto" :
-             animal.status === "atencao" ? "Atenção" : "Refugo"}
-          </span>
+          <span className={badgeCls}>{badgeLabel}</span>
         </div>
-        <div style={{ borderTop: "0.5px solid hsl(100 18% 22%)", marginTop: 12, paddingTop: 12,
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <div>
-            <p style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>Nascimento</p>
-            <p style={{ fontSize: 13, color: "hsl(95 30% 85%)" }}>
-              {new Date(animal.nascimento).toLocaleDateString("pt-BR")}
-            </p>
+
+        {(animal.data_nascimento || animal.brinco_mae) && (
+          <div style={{ borderTop: "0.5px solid hsl(100,18%,22%)", marginTop: 12, paddingTop: 12,
+            display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {animal.data_nascimento && (
+              <div>
+                <p style={{ fontSize: 11, color: "hsl(100,18%,45%)" }}>Nascimento</p>
+                <p style={{ fontSize: 13, color: "hsl(95,30%,85%)" }}>
+                  {new Date(animal.data_nascimento).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+            )}
+            {(animal.brinco_mae || animal.brinco_pai) && (
+              <div>
+                <p style={{ fontSize: 11, color: "hsl(100,18%,45%)" }}>Mãe / Pai</p>
+                <p style={{ fontSize: 13, color: "hsl(95,30%,85%)" }}>
+                  {animal.brinco_mae ?? "—"} / {animal.brinco_pai ?? "—"}
+                </p>
+              </div>
+            )}
           </div>
-          <div>
-            <p style={{ fontSize: 11, color: "hsl(100 18% 45%)" }}>Mãe / Pai</p>
-            <p style={{ fontSize: 13, color: "hsl(95 30% 85%)" }}>{animal.mae} / {animal.pai}</p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* GMD */}
-      <p className="section-label">Ganho médio diário</p>
+      <p className="section-label">Desempenho</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-        <div className={`stat-card ${gmdOk ? "stat-card-good" : "stat-card-alert"}`}>
-          <p style={{ fontSize: 26, fontWeight: 500,
-            color: gmdOk ? "hsl(113 48% 60%)" : "hsl(36 75% 60%)", lineHeight: 1 }}>
-            {gmd}g
+        <div className={"stat-card " + (gmd === null ? "" : gmdOk ? "stat-card-good" : "stat-card-alert")}>
+          <p style={{ fontSize: 26, fontWeight: 600, lineHeight: 1,
+            color: gmd === null ? "hsl(100,18%,50%)" : gmdOk ? "hsl(113,48%,62%)" : "hsl(36,75%,62%)" }}>
+            {gmd !== null ? gmd + "g" : "—"}
           </p>
-          <p style={{ fontSize: 12,
-            color: gmdOk ? "hsl(113 48% 35%)" : "hsl(36 75% 40%)", marginTop: 4 }}>
-            GMD atual
+          <p style={{ fontSize: 11, marginTop: 4,
+            color: gmd === null ? "hsl(100,18%,40%)" : gmdOk ? "hsl(113,48%,38%)" : "hsl(36,75%,42%)" }}>
+            GMD/dia {gmd !== null ? (gmdOk ? "✓ acima da meta" : "⚠ abaixo da meta") : "sem dados"}
           </p>
         </div>
         <div className="stat-card">
-          <p style={{ fontSize: 26, fontWeight: 500, color: "hsl(95 30% 92%)", lineHeight: 1 }}>
-            {animal.pesagens[animal.pesagens.length - 1].peso} kg
+          <p style={{ fontSize: 26, fontWeight: 600, color: "hsl(95,30%,92%)", lineHeight: 1 }}>
+            {pesoAtual !== null ? pesoAtual + " kg" : "—"}
           </p>
-          <p style={{ fontSize: 12, color: "hsl(100 18% 55%)", marginTop: 4 }}>Peso atual</p>
+          <p style={{ fontSize: 11, color: "hsl(100,18%,50%)", marginTop: 4 }}>
+            Peso atual {dias ? "· " + dias + " dias" : ""}
+          </p>
         </div>
       </div>
 
-      {/* Histórico de pesagens */}
+      {/* Histórico pesagens */}
       <p className="section-label">Histórico de pesagens</p>
-      {[...animal.pesagens].reverse().map((p: any, i: number) => (
-        <div key={i} className="animal-row" style={{ cursor: "default" }}>
-          <p style={{ fontSize: 14, color: "hsl(95 30% 85%)" }}>
-            {new Date(p.data).toLocaleDateString("pt-BR")}
-          </p>
-          <p style={{ fontSize: 14, fontWeight: 500, color: "hsl(95 30% 92%)" }}>
-            {p.peso} kg
-          </p>
+      {pesagens.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "20px 0", color: "hsl(100,18%,45%)", fontSize: 13 }}>
+          Nenhuma pesagem registrada
         </div>
-      ))}
+      ) : (
+        [...pesagens].reverse().map((p, i) => (
+          <div key={i} className="animal-row" style={{ cursor: "default" }}>
+            <p style={{ fontSize: 14, color: "hsl(95,30%,85%)" }}>
+              {new Date(p.data_pesagem).toLocaleDateString("pt-BR")}
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "hsl(95,30%,92%)" }}>
+              {p.peso_kg} kg
+            </p>
+          </div>
+        ))
+      )}
 
-      {/* Observações */}
       {animal.observacoes && (
         <>
           <p className="section-label" style={{ marginTop: 20 }}>Observações</p>
           <div className="stat-card stat-card-alert">
-            <p style={{ fontSize: 14, color: "hsl(36 75% 70%)" }}>{animal.observacoes}</p>
+            <p style={{ fontSize: 14, color: "hsl(36,75%,70%)" }}>{animal.observacoes}</p>
           </div>
         </>
       )}
 
-      {/* Ações */}
-      <button
-        onClick={() => navigate("/pesagem")}
-        className="btn-primary"
-        style={{ marginTop: 24 }}
-      >
+      <button className="btn-primary" onClick={() => navigate("/pesagem")} style={{ marginTop: 24 }}>
         Registrar pesagem
       </button>
     </div>
