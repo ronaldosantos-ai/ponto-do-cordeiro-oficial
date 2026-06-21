@@ -6,10 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { AdminRoute } from "./components/AdminRoute";
 
-// Layout Berry-style
 import AppLayout from "./components/v2/AppLayout";
+import ProtectedRoute from "./components/v2/ProtectedRoute";
 
-// V2 pages — usuário
 import Dashboard from "./pages/v2/Dashboard";
 import Rebanho from "./pages/v2/Rebanho";
 import AnimalDetalhe from "./pages/v2/AnimalDetalhe";
@@ -17,11 +16,7 @@ import AnimalNovo from "./pages/v2/AnimalNovo";
 import Pesagem from "./pages/v2/Pesagem";
 import Relatorios from "./pages/v2/Relatorios";
 import Configuracoes from "./pages/v2/Configuracoes";
-
-// Admin
 import AdminDashboardV2 from "./pages/admin/AdminDashboardV2";
-
-// Comuns
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
@@ -37,16 +32,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Rotas públicas */}
+            {/* Publicas */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
 
-            {/* Admin — layout próprio */}
+            {/* Admin */}
             <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
 
-            {/* App principal — Berry layout */}
-            <Route element={<AppLayout />}>
+            {/* App protegido */}
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/rebanho" element={<Rebanho />} />
