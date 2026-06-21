@@ -153,7 +153,7 @@ const Auth = () => {
           title: "✅ Conta criada com sucesso!",
           description: "Você já pode usar o app"
         });
-        navigate('/premium');
+        window.location.href = V2_URL;
       }
     } catch (error) {
       toast({
