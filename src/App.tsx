@@ -14,6 +14,7 @@ import Rebanho from "./pages/v2/Rebanho";
 import AnimalDetalhe from "./pages/v2/AnimalDetalhe";
 import AnimalNovo from "./pages/v2/AnimalNovo";
 import Pesagem from "./pages/v2/Pesagem";
+import Alertas from "./pages/v2/Alertas";
 import Custos from "./pages/v2/Custos";
 import CustoNovo from "./pages/v2/CustoNovo";
 import PesoEquilibrio from "./pages/v2/PesoEquilibrio";
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/rebanho/novo" element={<AnimalNovo />} />
               <Route path="/rebanho/:id" element={<AnimalDetalhe />} />
               <Route path="/pesagem" element={<Pesagem />} />
+              <Route path="/alertas" element={<Alertas />} />
               <Route path="/custos" element={<Custos />} />
               <Route path="/custos/novo" element={<CustoNovo />} />
               <Route path="/equilibrio" element={<PesoEquilibrio />} />
