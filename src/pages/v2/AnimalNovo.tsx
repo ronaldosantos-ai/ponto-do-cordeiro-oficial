@@ -1,3 +1,4 @@
+import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -126,6 +127,7 @@ export default function AnimalNovo() {
 
   return (
     <div className="page">
+      <BotaoVoltar para="/rebanho" />
       {erro && (
         <div style={{
           background: "hsl(0,65%,12%)", border: "0.5px solid hsl(0,65%,30%)",
