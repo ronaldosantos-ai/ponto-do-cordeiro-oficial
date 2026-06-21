@@ -19,6 +19,7 @@ import Lotes from "./pages/v2/Lotes";
 import Custos from "./pages/v2/Custos";
 import CustoNovo from "./pages/v2/CustoNovo";
 import PesoEquilibrio from "./pages/v2/PesoEquilibrio";
+import ComparativoMercado from "./pages/v2/ComparativoMercado";
 import GMDRebanho from "./pages/v2/GMDRebanho";
 import Relatorios from "./pages/v2/Relatorios";
 import Configuracoes from "./pages/v2/Configuracoes";
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/equilibrio" element={<PesoEquilibrio />} />
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/gmd" element={<GMDRebanho />} />
+              <Route path="/comparativo" element={<ComparativoMercado />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>
 
