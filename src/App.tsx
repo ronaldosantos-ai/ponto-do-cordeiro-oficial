@@ -16,6 +16,7 @@ import AnimalNovo from "./pages/v2/AnimalNovo";
 import Pesagem from "./pages/v2/Pesagem";
 import Custos from "./pages/v2/Custos";
 import CustoNovo from "./pages/v2/CustoNovo";
+import PesoEquilibrio from "./pages/v2/PesoEquilibrio";
 import Relatorios from "./pages/v2/Relatorios";
 import Configuracoes from "./pages/v2/Configuracoes";
 import AdminDashboardV2 from "./pages/admin/AdminDashboardV2";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/pesagem" element={<Pesagem />} />
               <Route path="/custos" element={<Custos />} />
               <Route path="/custos/novo" element={<CustoNovo />} />
+              <Route path="/equilibrio" element={<PesoEquilibrio />} />
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>
