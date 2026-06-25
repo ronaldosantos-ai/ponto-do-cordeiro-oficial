@@ -83,13 +83,16 @@ export default function AppLayout() {
         }}>
           {sidebarOpen ? (
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: PRIMARY, lineHeight: 1 }}>
-                🐑 Ponto do Cordeiro
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src="/logo-cordeiro.png" alt="Logo" style={{ width: 40, height: 40, objectFit: "contain" }} />
+                <p style={{ fontSize: 14, fontWeight: 600, color: PRIMARY, lineHeight: 1 }}>
+                  Ponto do Cordeiro
+                </p>
+              </div>
               <p style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>Gestão de rebanho</p>
             </div>
           ) : (
-            <span style={{ fontSize: 22 }}>🐑</span>
+            <img src="/logo-cordeiro.png" alt="Logo" style={{ width: 36, height: 36, objectFit: "contain" }} />
           )}
         </div>
 
@@ -257,7 +260,10 @@ export default function AppLayout() {
           top: 0,
           zIndex: 40,
         }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: PRIMARY }}>🐑 Ponto do Cordeiro</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <img src="/logo-cordeiro.png" alt="Logo" style={{ width: 36, height: 36, objectFit: "contain" }} />
+            <p style={{ fontSize: 14, fontWeight: 600, color: PRIMARY }}>Ponto do Cordeiro</p>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button style={{
               position: "relative",
