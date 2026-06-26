@@ -190,8 +190,8 @@ export default function AnimalDetalhe() {
         </>
       )}
 
-      <button className="btn-primary" onClick={() => navigate("/pesagem")} style={{ marginTop: 24 }}>
-        Registrar pesagem
+      <button className="btn-primary" onClick={() => navigate("/pesagem?animal_id=" + id + "&brinco=" + animal.brinco)} style={{ marginTop: 24 }}>
+        + Registrar pesagem
       </button>
     </div>
   );
