@@ -1,6 +1,6 @@
 import BotaoVoltar from "@/components/v2/BotaoVoltar";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnimais } from "@/hooks/useAnimais";
@@ -9,7 +9,10 @@ export default function Pesagem() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { animais } = useAnimais();
-  const [brinco, setBrinco] = useState("");
+  const [searchParams] = useSearchParams();
+  const brincoParam   = searchParams.get("brinco") || "";
+  const animalIdParam = searchParams.get("animal_id") || "";
+  const [brinco, setBrinco] = useState(brincoParam);
   const [peso, setPeso]     = useState("");
   const [data, setData]     = useState(new Date().toISOString().slice(0, 10));
   const [obs, setObs]       = useState("");
@@ -43,7 +46,11 @@ export default function Pesagem() {
       setSalvo(true);
       setTimeout(() => {
         setSalvo(false);
-        setBrinco(""); setPeso(""); setObs("");
+        if (animalIdParam) {
+          navigate("/rebanho/" + animalIdParam);
+        } else {
+          setBrinco(""); setPeso(""); setObs("");
+        }
       }, 2000);
     }
     setSalvando(false);
@@ -51,7 +58,7 @@ export default function Pesagem() {
 
   return (
     <div className="page">
-      <BotaoVoltar para="/rebanho" />
+      <BotaoVoltar para={animalIdParam ? "/rebanho/" + animalIdParam : "/rebanho"} />
       <p style={{ fontSize: 14, color: "hsl(100,18%,50%)", marginBottom: 20 }}>
         Registre o peso. O GMD é calculado automaticamente.
       </p>
