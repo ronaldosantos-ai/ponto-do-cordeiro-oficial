@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useFazenda } from "./useFazenda";
@@ -22,15 +22,22 @@ export interface Animal {
   lote_nome?: string | null;
 }
 
-export function useAnimais() {
+interface AnimaisContextType {
+  animais: Animal[];
+  loading: boolean;
+  erro: string | null;
+  recarregar: () => void;
+}
+
+const AnimaisContext = createContext<AnimaisContextType | undefined>(undefined);
+
+export function AnimaisProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { fazenda } = useFazenda();
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  // Dispara apenas quando user?.id muda (login/logout).
-  // fazenda é usada dentro de carregar() via closure — não precisa ser dependência.
   useEffect(() => {
     if (!user?.id) {
       setAnimais([]);
@@ -38,7 +45,7 @@ export function useAnimais() {
       return;
     }
     carregar();
-  }, [user?.id]); // <-- SÓ user?.id. Estável, sem loop.
+  }, [user?.id]);
 
   async function carregar() {
     if (!user?.id) return;
@@ -54,7 +61,6 @@ export function useAnimais() {
 
     if (error) { setErro(error.message); setLoading(false); return; }
 
-    // Usa valores padrão se fazenda ainda não carregou
     const meta     = fazenda?.meta_gmd_g  ?? 133;
     const metaPeso = fazenda?.meta_peso_kg ?? 40;
 
@@ -87,5 +93,15 @@ export function useAnimais() {
     setLoading(false);
   }
 
-  return { animais, loading, erro, recarregar: carregar };
+  return (
+    <AnimaisContext.Provider value={{ animais, loading, erro, recarregar: carregar }}>
+      {children}
+    </AnimaisContext.Provider>
+  );
+}
+
+export function useAnimais() {
+  const ctx = useContext(AnimaisContext);
+  if (!ctx) throw new Error("useAnimais must be used within AnimaisProvider");
+  return ctx;
 }
