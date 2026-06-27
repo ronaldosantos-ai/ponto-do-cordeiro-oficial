@@ -213,41 +213,51 @@ export default function AnimalDetalhe() {
             </span>
           </p>
           <div style={{
-            maxHeight: 280,
-            overflowY: "auto",
             borderRadius: 12,
             border: "0.5px solid hsl(100,18%,20%)",
+            overflow: "hidden",
+            position: "relative",
           }}>
-            {observacoes.map((obs, i) => (
-              <div key={obs.id} style={{
-                padding: "12px 14px",
-                borderBottom: i < observacoes.length - 1
-                  ? "0.5px solid hsl(100,18%,18%)" : "none",
-                background: i === 0 ? "hsl(100,18%,14%)" : "hsl(100,18%,12%)",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between",
-                  alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, color: "hsl(113,48%,50%)", fontWeight: 500 }}>
-                    {i === 0 ? "📌 Mais recente" : new Date(obs.data).toLocaleDateString("pt-BR")}
-                  </span>
-                  {i === 0 && (
-                    <span style={{ fontSize: 11, color: "hsl(100,18%,45%)" }}>
-                      {new Date(obs.data).toLocaleDateString("pt-BR")}
+            {/* Área rolável — altura de ~2 cards visíveis */}
+            <div style={{
+              maxHeight: 160,
+              overflowY: observacoes.length > 2 ? "auto" : "hidden",
+            }}>
+              {observacoes.map((obs, i) => (
+                <div key={obs.id} style={{
+                  padding: "12px 14px",
+                  borderBottom: i < observacoes.length - 1
+                    ? "0.5px solid hsl(100,18%,18%)" : "none",
+                  background: i === 0 ? "hsl(100,18%,14%)" : "hsl(100,18%,12%)",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "center", marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, color: "hsl(113,48%,50%)", fontWeight: 500 }}>
+                      {i === 0 ? "📌 Mais recente" : new Date(obs.data).toLocaleDateString("pt-BR")}
                     </span>
-                  )}
+                    {i === 0 && (
+                      <span style={{ fontSize: 11, color: "hsl(100,18%,45%)" }}>
+                        {new Date(obs.data).toLocaleDateString("pt-BR")}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 14, color: "hsl(95,30%,82%)", lineHeight: 1.5, margin: 0 }}>
+                    {obs.texto}
+                  </p>
                 </div>
-                <p style={{ fontSize: 14, color: "hsl(95,30%,82%)", lineHeight: 1.5 }}>
-                  {obs.texto}
-                </p>
-              </div>
-            ))}
-            {observacoes.length > 3 && (
-              <div style={{ padding: "8px 14px", textAlign: "center",
-                background: "hsl(100,18%,11%)",
-                borderTop: "0.5px solid hsl(100,18%,18%)" }}>
-                <p style={{ fontSize: 11, color: "hsl(100,18%,40%)" }}>
-                  Role para ver todas as {observacoes.length} observações
-                </p>
+              ))}
+            </div>
+            {/* Indicador de scroll — só aparece se tiver mais de 2 */}
+            {observacoes.length > 2 && (
+              <div style={{
+                padding: "6px 14px",
+                background: "linear-gradient(to bottom, hsl(100,18%,11%), hsl(100,18%,13%))",
+                borderTop: "0.5px solid hsl(100,18%,18%)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}>
+                <span style={{ fontSize: 11, color: "hsl(100,18%,40%)" }}>
+                  ↕ Role para ver todas as {observacoes.length} observações
+                </span>
               </div>
             )}
           </div>
