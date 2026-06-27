@@ -19,7 +19,7 @@ export function useGMDHistorico() {
   useEffect(() => {
     if (!user) return;
     carregar();
-  }, [user]);
+  }, [user?.id]);
 
   async function carregar() {
     setLoading(true);
