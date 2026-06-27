@@ -54,6 +54,7 @@ export default function LandingV5() {
   const [faqAberta, setFaqAberta] = useState<number | null>(null);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [instalado, setInstalado] = useState(false);
+  const [menuAberto, setMenuAberto] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(display-mode: standalone)").matches) setInstalado(true);
@@ -86,38 +87,89 @@ export default function LandingV5() {
       {/* NAVBAR */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         background: "hsl(100,20%,9%,0.95)", backdropFilter: "blur(12px)",
-        borderBottom: `0.5px solid ${C.border}`, height: 64,
-        display: "flex", alignItems: "center", padding: "0 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
-          <img src="/logo-cordeiro.png" alt="Logo" style={{ width: 40, height: 40, objectFit: "contain" }} />
-          <span style={{ fontSize: 15, fontWeight: 600, color: C.primary }}>Ponto do Cordeiro</span>
-        </div>
-        <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 20, alignItems: "center" }} className="nav-links-desktop">
+        borderBottom: `0.5px solid ${C.border}` }}>
+
+        {/* Barra principal */}
+        <div style={{ height: 64, display: "flex", alignItems: "center", padding: "0 20px", gap: 12 }}>
+
+          {/* Logo + Nome */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+            <img src="/logo-cordeiro.png" alt="Logo" style={{ width: 36, height: 36, objectFit: "contain" }} />
+            <span style={{ fontSize: 15, fontWeight: 600, color: C.primary }}>Ponto do Cordeiro</span>
+          </div>
+
+          {/* Desktop: links âncora + botões */}
+          <div style={{ display: "flex", gap: 20, alignItems: "center" }} className="nav-desktop">
             {NAV_LINKS.map(link => (
               <button key={link.id} onClick={() => scrollTo(link.id)} style={{
                 background: "transparent", border: "none", color: C.sub,
-                fontSize: 14, fontWeight: 500, cursor: "pointer", padding: 0,
-                transition: "color 0.2s" }}
+                fontSize: 14, fontWeight: 500, cursor: "pointer", padding: 0 }}
                 onMouseEnter={e => (e.currentTarget.style.color = C.primary)}
                 onMouseLeave={e => (e.currentTarget.style.color = C.sub)}>
                 {link.label}
               </button>
             ))}
-          </div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button onClick={() => navigate("/auth")} style={{
               background: "transparent", color: C.sub, border: `0.5px solid ${C.border}`,
-              borderRadius: 10, padding: "9px 20px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+              borderRadius: 10, padding: "8px 18px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
               Entrar
             </button>
             <button onClick={() => scrollTo("planos")} style={{
               background: C.primary, color: "hsl(100,20%,10%)", border: "none",
-              borderRadius: 10, padding: "9px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+              borderRadius: 10, padding: "8px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
               🎯 7 dias grátis
             </button>
           </div>
+
+          {/* Mobile: botão 7 dias + hambúrguer */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }} className="nav-mobile">
+            <button onClick={() => scrollTo("planos")} style={{
+              background: C.primary, color: "hsl(100,20%,10%)", border: "none",
+              borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              🎯 7 dias grátis
+            </button>
+            <button onClick={() => setMenuAberto(o => !o)} style={{
+              background: "transparent", border: `0.5px solid ${C.border}`,
+              borderRadius: 8, width: 36, height: 36, cursor: "pointer",
+              color: C.sub, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {menuAberto ? "✕" : "☰"}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile: menu dropdown */}
+        {menuAberto && (
+          <div className="nav-mobile" style={{
+            borderTop: `0.5px solid ${C.border}`,
+            background: "hsl(100,20%,10%)",
+            padding: "12px 20px 16px",
+            display: "flex", flexDirection: "column", gap: 4 }}>
+            {NAV_LINKS.map(link => (
+              <button key={link.id} onClick={() => { scrollTo(link.id); setMenuAberto(false); }} style={{
+                background: "transparent", border: "none", color: C.sub,
+                fontSize: 15, fontWeight: 500, cursor: "pointer",
+                padding: "10px 0", textAlign: "left",
+                borderBottom: `0.5px solid ${C.border}` }}>
+                {link.label}
+              </button>
+            ))}
+            <button onClick={() => { navigate("/auth"); setMenuAberto(false); }} style={{
+              background: "transparent", border: "none", color: C.sub,
+              fontSize: 15, fontWeight: 500, cursor: "pointer",
+              padding: "10px 0", textAlign: "left" }}>
+              Entrar
+            </button>
+          </div>
+        )}
+
+        <style>{`
+          .nav-desktop { display: flex; }
+          .nav-mobile  { display: none; }
+          @media (max-width: 767px) {
+            .nav-desktop { display: none !important; }
+            .nav-mobile  { display: flex !important; }
+          }
+        `}</style>
       </nav>
 
       {/* HERO */}
