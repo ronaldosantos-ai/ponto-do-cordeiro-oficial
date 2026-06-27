@@ -24,29 +24,37 @@ export interface Animal {
 
 export function useAnimais() {
   const { user } = useAuth();
-  const { fazenda, loading: loadingFazenda } = useFazenda();
+  const { fazenda } = useFazenda();
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  // Dispara apenas quando user?.id muda (login/logout).
+  // fazenda é usada dentro de carregar() via closure — não precisa ser dependência.
   useEffect(() => {
-    if (!user?.id || loadingFazenda) return;
-    carregar(user.id);
-  }, [user?.id, loadingFazenda]); // <-- user?.id estável
+    if (!user?.id) {
+      setAnimais([]);
+      setLoading(false);
+      return;
+    }
+    carregar();
+  }, [user?.id]); // <-- SÓ user?.id. Estável, sem loop.
 
-  async function carregar(userId: string) {
+  async function carregar() {
+    if (!user?.id) return;
     setLoading(true);
     setErro(null);
 
     const { data, error } = await supabase
       .from("animais")
       .select("*, lotes(nome), pesagens(peso_kg, data_pesagem)")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .eq("status", "ativo")
       .order("created_at", { ascending: false });
 
     if (error) { setErro(error.message); setLoading(false); return; }
 
+    // Usa valores padrão se fazenda ainda não carregou
     const meta     = fazenda?.meta_gmd_g  ?? 133;
     const metaPeso = fazenda?.meta_peso_kg ?? 40;
 
@@ -79,9 +87,5 @@ export function useAnimais() {
     setLoading(false);
   }
 
-  function recarregar() {
-    if (user?.id) carregar(user.id);
-  }
-
-  return { animais, loading, erro, recarregar };
+  return { animais, loading, erro, recarregar: carregar };
 }
