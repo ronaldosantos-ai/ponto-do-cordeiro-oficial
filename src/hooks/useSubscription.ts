@@ -18,7 +18,7 @@ export function useSubscription() {
   useEffect(() => {
     if (!user) { setLoading(false); return; }
     carregar();
-  }, [user]);
+  }, [user?.id]);
 
   async function carregar() {
     setLoading(true);
