@@ -48,7 +48,7 @@ export function useAlertas() {
   useEffect(() => {
     if (!user) return;
     carregarCustom();
-  }, [user]);
+  }, [user?.id]);
 
   async function carregarCustom() {
     setLoadingCustom(true);
