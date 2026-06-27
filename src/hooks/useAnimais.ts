@@ -30,18 +30,18 @@ export function useAnimais() {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || loadingFazenda) return;
-    carregar();
-  }, [user?.id, loadingFazenda]);
+    if (!user?.id || loadingFazenda) return;
+    carregar(user.id);
+  }, [user?.id, loadingFazenda]); // <-- user?.id estável
 
-  async function carregar() {
+  async function carregar(userId: string) {
     setLoading(true);
     setErro(null);
 
     const { data, error } = await supabase
       .from("animais")
       .select("*, lotes(nome), pesagens(peso_kg, data_pesagem)")
-      .eq("user_id", user!.id)
+      .eq("user_id", userId)
       .eq("status", "ativo")
       .order("created_at", { ascending: false });
 
@@ -79,5 +79,9 @@ export function useAnimais() {
     setLoading(false);
   }
 
-  return { animais, loading, erro, recarregar: carregar };
+  function recarregar() {
+    if (user?.id) carregar(user.id);
+  }
+
+  return { animais, loading, erro, recarregar };
 }
