@@ -10,15 +10,21 @@ interface Pesagem {
   observacoes: string | null;
 }
 
+interface Observacao {
+  id: string;
+  data: string;
+  texto: string;
+}
+
 export default function AnimalDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { animais } = useAnimais();
 
-  // Pega dados básicos do cache (instantâneo)
   const animalCache = animais.find(a => a.id === id) ?? null;
 
   const [pesagens, setPesagens] = useState<Pesagem[]>([]);
+  const [observacoes, setObservacoes] = useState<Observacao[]>([]);
   const [loteNome, setLoteNome] = useState<string | null>(animalCache?.lote_nome ?? null);
   const [loadingPesagens, setLoadingPesagens] = useState(true);
   const [extra, setExtra] = useState<{
@@ -35,25 +41,36 @@ export default function AnimalDetalhe() {
 
   async function carregarDetalhes() {
     setLoadingPesagens(true);
-    const { data } = await supabase
-      .from("animais")
-      .select("data_nascimento, brinco_mae, brinco_pai, observacoes, lotes(nome), pesagens(id, data_pesagem, peso_kg, observacoes)")
-      .eq("id", id)
-      .single();
 
-    if (data) {
+    // Busca dados do animal + pesagens em paralelo com observações
+    const [animalRes, obsRes] = await Promise.all([
+      supabase
+        .from("animais")
+        .select("data_nascimento, brinco_mae, brinco_pai, observacoes, lotes(nome), pesagens(id, data_pesagem, peso_kg, observacoes)")
+        .eq("id", id)
+        .single(),
+      supabase
+        .from("observacoes_animal")
+        .select("id, data, texto")
+        .eq("animal_id", id)
+        .order("data", { ascending: false }),
+    ]);
+
+    if (animalRes.data) {
       setExtra({
-        data_nascimento: data.data_nascimento,
-        brinco_mae: data.brinco_mae,
-        brinco_pai: data.brinco_pai,
-        observacoes: data.observacoes,
+        data_nascimento: animalRes.data.data_nascimento,
+        brinco_mae: animalRes.data.brinco_mae,
+        brinco_pai: animalRes.data.brinco_pai,
+        observacoes: animalRes.data.observacoes,
       });
-      setLoteNome((data as any).lotes?.nome ?? null);
-      const sorted = [...((data as any).pesagens ?? [])].sort(
+      setLoteNome((animalRes.data as any).lotes?.nome ?? null);
+      const sorted = [...((animalRes.data as any).pesagens ?? [])].sort(
         (a: any, b: any) => new Date(a.data_pesagem).getTime() - new Date(b.data_pesagem).getTime()
       );
       setPesagens(sorted);
     }
+
+    setObservacoes((obsRes.data ?? []) as Observacao[]);
     setLoadingPesagens(false);
   }
 
@@ -185,7 +202,60 @@ export default function AnimalDetalhe() {
         ))
       )}
 
-      {extra?.observacoes && (
+      {/* Observações — todas da tabela observacoes_animal, mais recente primeiro */}
+      {!loadingPesagens && observacoes.length > 0 && (
+        <>
+          <p className="section-label" style={{ marginTop: 20 }}>
+            Observações
+            <span style={{ marginLeft: 8, fontSize: 11, color: "hsl(100,18%,45%)",
+              fontWeight: 400, fontStyle: "italic" }}>
+              {observacoes.length} registro{observacoes.length > 1 ? "s" : ""}
+            </span>
+          </p>
+          <div style={{
+            maxHeight: 280,
+            overflowY: "auto",
+            borderRadius: 12,
+            border: "0.5px solid hsl(100,18%,20%)",
+          }}>
+            {observacoes.map((obs, i) => (
+              <div key={obs.id} style={{
+                padding: "12px 14px",
+                borderBottom: i < observacoes.length - 1
+                  ? "0.5px solid hsl(100,18%,18%)" : "none",
+                background: i === 0 ? "hsl(100,18%,14%)" : "hsl(100,18%,12%)",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between",
+                  alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: "hsl(113,48%,50%)", fontWeight: 500 }}>
+                    {i === 0 ? "📌 Mais recente" : new Date(obs.data).toLocaleDateString("pt-BR")}
+                  </span>
+                  {i === 0 && (
+                    <span style={{ fontSize: 11, color: "hsl(100,18%,45%)" }}>
+                      {new Date(obs.data).toLocaleDateString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+                <p style={{ fontSize: 14, color: "hsl(95,30%,82%)", lineHeight: 1.5 }}>
+                  {obs.texto}
+                </p>
+              </div>
+            ))}
+            {observacoes.length > 3 && (
+              <div style={{ padding: "8px 14px", textAlign: "center",
+                background: "hsl(100,18%,11%)",
+                borderTop: "0.5px solid hsl(100,18%,18%)" }}>
+                <p style={{ fontSize: 11, color: "hsl(100,18%,40%)" }}>
+                  Role para ver todas as {observacoes.length} observações
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Observação do campo animais (legado) — mostra só se não tem na tabela */}
+      {!loadingPesagens && observacoes.length === 0 && extra?.observacoes && (
         <>
           <p className="section-label" style={{ marginTop: 20 }}>Observações</p>
           <div className="stat-card stat-card-alert">
