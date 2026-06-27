@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useFazenda } from "./useFazenda";
@@ -29,19 +29,8 @@ export function useAnimais() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  // Ref para evitar chamadas duplicadas
-  const carregouRef = useRef(false);
-  const userIdRef   = useRef<string | null>(null);
-
   useEffect(() => {
-    // Só carrega quando user existe e fazenda terminou de tentar (loading=false)
     if (!user || loadingFazenda) return;
-
-    // Evita recarregar se o user não mudou
-    if (carregouRef.current && userIdRef.current === user.id) return;
-
-    carregouRef.current = true;
-    userIdRef.current   = user.id;
     carregar();
   }, [user?.id, loadingFazenda]);
 
@@ -90,11 +79,5 @@ export function useAnimais() {
     setLoading(false);
   }
 
-  // Permite recarregar manualmente (ex: após salvar pesagem)
-  function recarregar() {
-    carregouRef.current = false;
-    carregar();
-  }
-
-  return { animais, loading, erro, recarregar };
+  return { animais, loading, erro, recarregar: carregar };
 }
