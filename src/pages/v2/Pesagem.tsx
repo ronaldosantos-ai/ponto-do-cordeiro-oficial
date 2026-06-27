@@ -226,10 +226,11 @@ export default function Pesagem() {
       </div>
 
       <p className="section-label">Observações</p>
-      <textarea className="field" rows={3}
+      <textarea className="field" rows={2}
         placeholder="Ex: animal com diarreia, separado do lote..."
         value={obs} onChange={e => setObs(e.target.value)}
-        style={{ marginBottom: 24, resize: "none", height: "auto", paddingTop: 12 }} />
+        style={{ marginBottom: 24, resize: "none", overflowY: "auto",
+          height: "56px", paddingTop: 10, lineHeight: "1.5" }} />
 
       {salvo ? (
         <div style={{
