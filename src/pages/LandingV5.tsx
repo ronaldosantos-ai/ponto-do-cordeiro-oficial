@@ -55,6 +55,13 @@ export default function LandingV5() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [instalado, setInstalado] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia("(display-mode: standalone)").matches) setInstalado(true);
@@ -89,11 +96,6 @@ export default function LandingV5() {
         background: "hsl(100,20%,9%,0.95)", backdropFilter: "blur(12px)",
         borderBottom: `0.5px solid ${C.border}` }}>
 
-        <style>{`
-          @media (max-width: 767px) { .lv5-desktop { display: none !important; } }
-          @media (min-width: 768px) { .lv5-mobile  { display: none !important; } }
-        `}</style>
-
         {/* Barra principal */}
         <div style={{ height: 64, display: "flex", alignItems: "center", padding: "0 20px", gap: 12 }}>
 
@@ -103,48 +105,52 @@ export default function LandingV5() {
             <span style={{ fontSize: 15, fontWeight: 600, color: C.primary }}>Ponto do Cordeiro</span>
           </div>
 
-          {/* DESKTOP: links âncora + Entrar + 7 dias */}
-          <div className="lv5-desktop" style={{ display: "flex", gap: 20, alignItems: "center" }}>
-            {NAV_LINKS.map(link => (
-              <button key={link.id} onClick={() => scrollTo(link.id)} style={{
-                background: "transparent", border: "none", color: C.sub,
-                fontSize: 14, fontWeight: 500, cursor: "pointer", padding: 0 }}
-                onMouseEnter={e => (e.currentTarget.style.color = C.primary)}
-                onMouseLeave={e => (e.currentTarget.style.color = C.sub)}>
-                {link.label}
+          {/* DESKTOP */}
+          {!isMobile && (
+            <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+              {NAV_LINKS.map(link => (
+                <button key={link.id} onClick={() => scrollTo(link.id)} style={{
+                  background: "transparent", border: "none", color: C.sub,
+                  fontSize: 14, fontWeight: 500, cursor: "pointer", padding: 0 }}
+                  onMouseEnter={e => (e.currentTarget.style.color = C.primary)}
+                  onMouseLeave={e => (e.currentTarget.style.color = C.sub)}>
+                  {link.label}
+                </button>
+              ))}
+              <button onClick={() => navigate("/auth")} style={{
+                background: "transparent", color: C.sub, border: `0.5px solid ${C.border}`,
+                borderRadius: 10, padding: "8px 18px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+                Entrar
               </button>
-            ))}
-            <button onClick={() => navigate("/auth")} style={{
-              background: "transparent", color: C.sub, border: `0.5px solid ${C.border}`,
-              borderRadius: 10, padding: "8px 18px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-              Entrar
-            </button>
-            <button onClick={() => scrollTo("planos")} style={{
-              background: C.primary, color: "hsl(100,20%,10%)", border: "none",
-              borderRadius: 10, padding: "8px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-              🎯 7 dias grátis
-            </button>
-          </div>
+              <button onClick={() => scrollTo("planos")} style={{
+                background: C.primary, color: "hsl(100,20%,10%)", border: "none",
+                borderRadius: 10, padding: "8px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+                🎯 7 dias grátis
+              </button>
+            </div>
+          )}
 
-          {/* MOBILE: só 7 dias + hambúrguer */}
-          <div className="lv5-mobile" style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button onClick={() => scrollTo("planos")} style={{
-              background: C.primary, color: "hsl(100,20%,10%)", border: "none",
-              borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              🎯 7 dias grátis
-            </button>
-            <button onClick={() => setMenuAberto(o => !o)} style={{
-              background: "transparent", border: `0.5px solid ${C.border}`,
-              borderRadius: 8, width: 38, height: 38, cursor: "pointer",
-              color: C.sub, fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {menuAberto ? "✕" : "☰"}
-            </button>
-          </div>
+          {/* MOBILE */}
+          {isMobile && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button onClick={() => scrollTo("planos")} style={{
+                background: C.primary, color: "hsl(100,20%,10%)", border: "none",
+                borderRadius: 8, padding: "8px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                🎯 7 dias grátis
+              </button>
+              <button onClick={() => setMenuAberto(o => !o)} style={{
+                background: "transparent", border: `0.5px solid ${C.border}`,
+                borderRadius: 8, width: 38, height: 38, cursor: "pointer",
+                color: C.sub, fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {menuAberto ? "✕" : "☰"}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* MOBILE: dropdown do hambúrguer */}
-        {menuAberto && (
-          <div className="lv5-mobile" style={{
+        {/* MOBILE dropdown */}
+        {isMobile && menuAberto && (
+          <div style={{
             display: "flex", flexDirection: "column",
             borderTop: `0.5px solid ${C.border}`,
             background: "hsl(100,20%,10%)",
