@@ -1,4 +1,3 @@
-import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,7 +118,6 @@ export default function Pesagem() {
 
   return (
     <div className="page">
-      <BotaoVoltar para={modoFixo ? "/rebanho/" + animalIdParam : "/rebanho"} />
 
       {/* ── MODO FIXO: card do animal pré-selecionado ── */}
       {modoFixo && (
