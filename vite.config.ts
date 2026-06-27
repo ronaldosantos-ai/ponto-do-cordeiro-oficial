@@ -22,30 +22,45 @@ export default defineConfig(({ mode }) => ({
         short_name: "Ponto Cordeiro",
         description: "Decisão rápida de venda de cordeiros para produtores rurais",
         theme_color: "#059669",
-        background_color: "#ffffff",
+        background_color: "#1C2416",
         display: "standalone",
-        start_url: "/",
+        start_url: "/dashboard",
         icons: [
-          {
-            src: "/icon.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/icon.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-          {
-            src: "/icon.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
+          { src: "/icon.png", sizes: "192x192", type: "image/png" },
+          { src: "/icon.png", sizes: "512x512", type: "image/png" },
+          { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}"],
+        // JS e HTML sempre buscam do servidor (network-first)
+        // Garante que updates chegam imediatamente no PWA instalado
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api/],
+        runtimeCaching: [
+          {
+            // Imagens e fontes: cache-first (não mudam)
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico|woff2?)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-assets",
+              expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+          {
+            // Supabase API: network-first (dados sempre frescos)
+            urlPattern: /supabase\.co/,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-api",
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 50, maxAgeSeconds: 5 * 60 },
+            },
+          },
+        ],
+        // NÃO cacheia JS/CSS agressivamente — deixa o browser gerenciar
+        globPatterns: ["**/*.{html,ico,png,svg,jpg,jpeg,webp}"],
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ].filter(Boolean),
