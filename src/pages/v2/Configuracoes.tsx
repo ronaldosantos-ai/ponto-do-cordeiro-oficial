@@ -38,7 +38,7 @@ export default function Configuracoes() {
       preco_venda:  fazenda.preco_venda ? String(fazenda.preco_venda) : "",
       custo_diario: fazenda.custo_diario ? String(fazenda.custo_diario) : "",
     });
-  }, [fazenda]);
+  }, [fazenda?.id]);
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
