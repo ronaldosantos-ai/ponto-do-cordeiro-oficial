@@ -28,7 +28,7 @@ export default function Lotes() {
   useEffect(() => {
     if (!user) return;
     carregarLotes();
-  }, [user]);
+  }, [user?.id]);
 
   async function carregarLotes() {
     setLoading(true);
