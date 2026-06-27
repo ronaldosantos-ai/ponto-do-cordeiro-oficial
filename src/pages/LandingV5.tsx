@@ -89,6 +89,11 @@ export default function LandingV5() {
         background: "hsl(100,20%,9%,0.95)", backdropFilter: "blur(12px)",
         borderBottom: `0.5px solid ${C.border}` }}>
 
+        <style>{`
+          @media (max-width: 767px) { .lv5-desktop { display: none !important; } }
+          @media (min-width: 768px) { .lv5-mobile  { display: none !important; } }
+        `}</style>
+
         {/* Barra principal */}
         <div style={{ height: 64, display: "flex", alignItems: "center", padding: "0 20px", gap: 12 }}>
 
@@ -98,8 +103,8 @@ export default function LandingV5() {
             <span style={{ fontSize: 15, fontWeight: 600, color: C.primary }}>Ponto do Cordeiro</span>
           </div>
 
-          {/* Desktop: links âncora + botões */}
-          <div style={{ display: "flex", gap: 20, alignItems: "center" }} className="nav-desktop">
+          {/* DESKTOP: links âncora + Entrar + 7 dias */}
+          <div className="lv5-desktop" style={{ display: "flex", gap: 20, alignItems: "center" }}>
             {NAV_LINKS.map(link => (
               <button key={link.id} onClick={() => scrollTo(link.id)} style={{
                 background: "transparent", border: "none", color: C.sub,
@@ -121,55 +126,50 @@ export default function LandingV5() {
             </button>
           </div>
 
-          {/* Mobile: botão 7 dias + hambúrguer */}
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }} className="nav-mobile">
+          {/* MOBILE: só 7 dias + hambúrguer */}
+          <div className="lv5-mobile" style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button onClick={() => scrollTo("planos")} style={{
               background: C.primary, color: "hsl(100,20%,10%)", border: "none",
-              borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               🎯 7 dias grátis
             </button>
             <button onClick={() => setMenuAberto(o => !o)} style={{
               background: "transparent", border: `0.5px solid ${C.border}`,
-              borderRadius: 8, width: 36, height: 36, cursor: "pointer",
-              color: C.sub, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              borderRadius: 8, width: 38, height: 38, cursor: "pointer",
+              color: C.sub, fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
               {menuAberto ? "✕" : "☰"}
             </button>
           </div>
         </div>
 
-        {/* Mobile: menu dropdown */}
+        {/* MOBILE: dropdown do hambúrguer */}
         {menuAberto && (
-          <div className="nav-mobile" style={{
+          <div className="lv5-mobile" style={{
+            display: "flex", flexDirection: "column",
             borderTop: `0.5px solid ${C.border}`,
             background: "hsl(100,20%,10%)",
-            padding: "12px 20px 16px",
-            display: "flex", flexDirection: "column", gap: 4 }}>
-            {NAV_LINKS.map(link => (
-              <button key={link.id} onClick={() => { scrollTo(link.id); setMenuAberto(false); }} style={{
-                background: "transparent", border: "none", color: C.sub,
-                fontSize: 15, fontWeight: 500, cursor: "pointer",
-                padding: "10px 0", textAlign: "left",
-                borderBottom: `0.5px solid ${C.border}` }}>
+            padding: "8px 20px 16px" }}>
+            {NAV_LINKS.map((link, i) => (
+              <button key={link.id}
+                onClick={() => { scrollTo(link.id); setMenuAberto(false); }}
+                style={{
+                  background: "transparent", border: "none", color: C.sub,
+                  fontSize: 15, fontWeight: 500, cursor: "pointer",
+                  padding: "12px 0", textAlign: "left",
+                  borderBottom: i < NAV_LINKS.length - 1 ? `0.5px solid ${C.border}` : "none" }}>
                 {link.label}
               </button>
             ))}
-            <button onClick={() => { navigate("/auth"); setMenuAberto(false); }} style={{
-              background: "transparent", border: "none", color: C.sub,
-              fontSize: 15, fontWeight: 500, cursor: "pointer",
-              padding: "10px 0", textAlign: "left" }}>
+            <button onClick={() => { navigate("/auth"); setMenuAberto(false); }}
+              style={{
+                background: "transparent", border: "none", color: C.sub,
+                fontSize: 15, fontWeight: 500, cursor: "pointer",
+                padding: "12px 0", textAlign: "left",
+                borderTop: `0.5px solid ${C.border}`, marginTop: 4 }}>
               Entrar
             </button>
           </div>
         )}
-
-        <style>{`
-          .nav-desktop { display: flex; }
-          .nav-mobile  { display: none; }
-          @media (max-width: 767px) {
-            .nav-desktop { display: none !important; }
-            .nav-mobile  { display: flex !important; }
-          }
-        `}</style>
       </nav>
 
       {/* HERO */}
