@@ -1,4 +1,5 @@
-import { useState, useEffect, createContext, useContext, ReactNode, createElement } from "react";
+import { useState, useEffect, createContext, useContext, createElement } from "react";
+import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -55,11 +56,7 @@ export function FazendaProvider({ children }: { children: ReactNode }) {
     if (user?.id) carregar(user.id);
   }
 
-  return createElement(
-    FazendaContext.Provider,
-    { value: { fazenda, loading, recarregar } },
-    children
-  );
+  return createElement(FazendaContext.Provider, { value: { fazenda, loading, recarregar } }, children);
 }
 
 export function useFazenda() {
