@@ -1,4 +1,5 @@
-import { useState, useEffect, createContext, useContext, ReactNode, createElement } from "react";
+import { useState, useEffect, createContext, useContext, createElement } from "react";
+import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useFazenda } from "./useFazenda";
@@ -39,11 +40,7 @@ export function AnimaisProvider({ children }: { children: ReactNode }) {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.id) {
-      setAnimais([]);
-      setLoading(false);
-      return;
-    }
+    if (!user?.id) { setAnimais([]); setLoading(false); return; }
     carregar();
   }, [user?.id]);
 
@@ -93,11 +90,7 @@ export function AnimaisProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }
 
-  return createElement(
-    AnimaisContext.Provider,
-    { value: { animais, loading, erro, recarregar: carregar } },
-    children
-  );
+  return createElement(AnimaisContext.Provider, { value: { animais, loading, erro, recarregar: carregar } }, children);
 }
 
 export function useAnimais() {
