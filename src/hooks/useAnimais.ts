@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useFazenda } from "./useFazenda";
@@ -29,12 +29,21 @@ export function useAnimais() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  // Ref para evitar chamadas duplicadas
+  const carregouRef = useRef(false);
+  const userIdRef   = useRef<string | null>(null);
+
   useEffect(() => {
-    // Aguarda o user; mas não bloqueia esperando fazenda indefinidamente
-    if (!user) return;
-    if (loadingFazenda) return; // espera a fazenda resolver (sucesso ou falha)
+    // Só carrega quando user existe e fazenda terminou de tentar (loading=false)
+    if (!user || loadingFazenda) return;
+
+    // Evita recarregar se o user não mudou
+    if (carregouRef.current && userIdRef.current === user.id) return;
+
+    carregouRef.current = true;
+    userIdRef.current   = user.id;
     carregar();
-  }, [user, fazenda, loadingFazenda]);
+  }, [user?.id, loadingFazenda]);
 
   async function carregar() {
     setLoading(true);
@@ -49,7 +58,6 @@ export function useAnimais() {
 
     if (error) { setErro(error.message); setLoading(false); return; }
 
-    // Usa valores padrão se a fazenda não carregou
     const meta     = fazenda?.meta_gmd_g  ?? 133;
     const metaPeso = fazenda?.meta_peso_kg ?? 40;
 
@@ -57,11 +65,11 @@ export function useAnimais() {
       const pesagens = [...(a.pesagens ?? [])].sort(
         (x: any, y: any) => new Date(x.data_pesagem).getTime() - new Date(y.data_pesagem).getTime()
       );
-      const primeira  = pesagens[0];
-      const ultima    = pesagens[pesagens.length - 1];
+      const primeira   = pesagens[0];
+      const ultima     = pesagens[pesagens.length - 1];
       const peso_atual = ultima?.peso_kg ?? null;
 
-      let gmd: number | null = null;
+      let gmd: number | null  = null;
       let dias: number | null = null;
       if (primeira && ultima && primeira.data_pesagem !== ultima.data_pesagem) {
         dias = Math.round(
@@ -71,9 +79,9 @@ export function useAnimais() {
       }
 
       let status = "normal";
-      if (peso_atual !== null && peso_atual >= metaPeso)       status = "pronto";
-      else if (gmd !== null && gmd < meta * 0.7)              status = "refugo";
-      else if (gmd !== null && gmd < meta)                    status = "atencao";
+      if (peso_atual !== null && peso_atual >= metaPeso)  status = "pronto";
+      else if (gmd !== null && gmd < meta * 0.7)          status = "refugo";
+      else if (gmd !== null && gmd < meta)                status = "atencao";
 
       return { ...a, peso_atual, gmd, dias, lote_nome: a.lotes?.nome ?? null, status };
     });
@@ -82,5 +90,11 @@ export function useAnimais() {
     setLoading(false);
   }
 
-  return { animais, loading, erro, recarregar: carregar };
+  // Permite recarregar manualmente (ex: após salvar pesagem)
+  function recarregar() {
+    carregouRef.current = false;
+    carregar();
+  }
+
+  return { animais, loading, erro, recarregar };
 }
