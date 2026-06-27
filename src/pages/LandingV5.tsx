@@ -92,17 +92,31 @@ export default function LandingV5() {
           <img src="/logo-cordeiro.png" alt="Logo" style={{ width: 40, height: 40, objectFit: "contain" }} />
           <span style={{ fontSize: 15, fontWeight: 600, color: C.primary }}>Ponto do Cordeiro</span>
         </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <button onClick={() => navigate("/auth")} style={{
-            background: "transparent", color: C.sub, border: `0.5px solid ${C.border}`,
-            borderRadius: 10, padding: "9px 20px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-            Entrar
-          </button>
-          <button onClick={() => scrollTo("planos")} style={{
-            background: C.primary, color: "hsl(100,20%,10%)", border: "none",
-            borderRadius: 10, padding: "9px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-            🎯 7 dias grátis
-          </button>
+        <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 20, alignItems: "center" }} className="nav-links-desktop">
+            {NAV_LINKS.map(link => (
+              <button key={link.id} onClick={() => scrollTo(link.id)} style={{
+                background: "transparent", border: "none", color: C.sub,
+                fontSize: 14, fontWeight: 500, cursor: "pointer", padding: 0,
+                transition: "color 0.2s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = C.primary)}
+                onMouseLeave={e => (e.currentTarget.style.color = C.sub)}>
+                {link.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <button onClick={() => navigate("/auth")} style={{
+              background: "transparent", color: C.sub, border: `0.5px solid ${C.border}`,
+              borderRadius: 10, padding: "9px 20px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+              Entrar
+            </button>
+            <button onClick={() => scrollTo("planos")} style={{
+              background: C.primary, color: "hsl(100,20%,10%)", border: "none",
+              borderRadius: 10, padding: "9px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+              🎯 7 dias grátis
+            </button>
+          </div>
         </div>
       </nav>
 
