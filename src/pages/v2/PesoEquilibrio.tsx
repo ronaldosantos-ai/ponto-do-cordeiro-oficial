@@ -37,7 +37,7 @@ export default function PesoEquilibrio() {
   useEffect(() => {
     if (!user) return;
     carregarCustos();
-  }, [user, animais]);
+  }, [user?.id]);
 
   async function carregarCustos() {
     setLoading(true);
