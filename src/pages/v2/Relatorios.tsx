@@ -1,4 +1,3 @@
-import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useNavigate } from "react-router-dom";
 import { useAnimais } from "@/hooks/useAnimais";
 
@@ -89,7 +88,6 @@ export default function Relatorios() {
 
   return (
     <div className="page">
-      <BotaoVoltar para="/dashboard" />
       {/* Indicadores rápidos */}
       {total > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
