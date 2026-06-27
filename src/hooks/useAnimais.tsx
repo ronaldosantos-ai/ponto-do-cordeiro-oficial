@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, createContext, useContext, ReactNode, createElement } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useFazenda } from "./useFazenda";
@@ -93,10 +93,10 @@ export function AnimaisProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }
 
-  return (
-    <AnimaisContext.Provider value={{ animais, loading, erro, recarregar: carregar }}>
-      {children}
-    </AnimaisContext.Provider>
+  return createElement(
+    AnimaisContext.Provider,
+    { value: { animais, loading, erro, recarregar: carregar } },
+    children
   );
 }
 
