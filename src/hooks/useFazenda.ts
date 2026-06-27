@@ -11,27 +11,18 @@ export interface Fazenda {
   custo_diario: number | null;
 }
 
-// Cache em módulo — evita múltiplas chamadas ao Supabase quando vários
-// componentes usam useFazenda() ao mesmo tempo na mesma sessão.
-let _cache: Fazenda | null = null;
-let _userId: string | null = null;
-let _promise: Promise<Fazenda | null> | null = null;
+export function useFazenda() {
+  const { user } = useAuth();
+  const [fazenda, setFazenda] = useState<Fazenda | null>(null);
+  const [loading, setLoading] = useState(true);
 
-function limparCache() {
-  _cache = null;
-  _userId = null;
-  _promise = null;
-}
+  useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    carregarOuCriar(user.id);
+  }, [user?.id]); // <-- string estável, não o objeto user
 
-async function buscarOuCriarFazenda(userId: string): Promise<Fazenda | null> {
-  // Já temos no cache para este user
-  if (_cache && _userId === userId) return _cache;
-
-  // Já existe uma busca em andamento — reutiliza
-  if (_promise && _userId === userId) return _promise;
-
-  _userId = userId;
-  _promise = (async () => {
+  async function carregarOuCriar(userId: string) {
+    setLoading(true);
     const { data } = await supabase
       .from("fazendas")
       .select("*")
@@ -40,53 +31,20 @@ async function buscarOuCriarFazenda(userId: string): Promise<Fazenda | null> {
       .single();
 
     if (data) {
-      _cache = data as Fazenda;
-      return _cache;
+      setFazenda(data as Fazenda);
+    } else {
+      const { data: nova } = await supabase
+        .from("fazendas")
+        .insert({ user_id: userId, nome: "Minha Fazenda", meta_gmd_g: 133, meta_peso_kg: 40 })
+        .select()
+        .single();
+      setFazenda(nova as Fazenda | null);
     }
-
-    // Cria fazenda padrão na primeira vez
-    const { data: nova } = await supabase
-      .from("fazendas")
-      .insert({ user_id: userId, nome: "Minha Fazenda", meta_gmd_g: 133, meta_peso_kg: 40 })
-      .select()
-      .single();
-
-    _cache = nova as Fazenda | null;
-    return _cache;
-  })();
-
-  return _promise;
-}
-
-export function useFazenda() {
-  const { user } = useAuth();
-  const [fazenda, setFazenda] = useState<Fazenda | null>(_cache);
-  const [loading, setLoading] = useState(!_cache);
-
-  useEffect(() => {
-    if (!user) { setLoading(false); return; }
-
-    // Se já está no cache para este user, usa direto
-    if (_cache && _userId === user.id) {
-      setFazenda(_cache);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    buscarOuCriarFazenda(user.id).then(f => {
-      setFazenda(f);
-      setLoading(false);
-    });
-  }, [user?.id]);
-
-  async function recarregar() {
-    if (!user) return;
-    limparCache();
-    setLoading(true);
-    const f = await buscarOuCriarFazenda(user.id);
-    setFazenda(f);
     setLoading(false);
+  }
+
+  function recarregar() {
+    if (user?.id) carregarOuCriar(user.id);
   }
 
   return { fazenda, loading, recarregar };
