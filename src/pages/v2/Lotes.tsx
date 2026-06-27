@@ -1,4 +1,3 @@
-import BotaoVoltar from "@/components/v2/BotaoVoltar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,7 +101,6 @@ export default function Lotes() {
 
   return (
     <div className="page">
-      <BotaoVoltar para="/rebanho" />
 
       {/* Resumo geral */}
       {!loading && lotes.length > 0 && (
@@ -149,7 +147,7 @@ export default function Lotes() {
       )}
 
       {/* Loading */}
-      {(loading || loadingAnimais) && (
+      {loading && (
         <div style={{ textAlign: "center", padding: 40,
           color: "hsl(100,18%,40%)", fontSize: 13 }}>
           Carregando lotes...
@@ -157,7 +155,7 @@ export default function Lotes() {
       )}
 
       {/* Sem lotes */}
-      {!loading && !loadingAnimais && lotes.length === 0 && (
+      {!loading && lotes.length === 0 && (
         <div style={{ textAlign: "center", padding: 40 }}>
           <p style={{ fontSize: 36, marginBottom: 12 }}>🐑</p>
           <p style={{ fontSize: 15, fontWeight: 500, color: "hsl(95,30%,80%)", marginBottom: 6 }}>
@@ -174,7 +172,7 @@ export default function Lotes() {
       )}
 
       {/* Lista de lotes */}
-      {!loading && !loadingAnimais && lotesEnriquecidos.map(lote => (
+      {!loading && lotesEnriquecidos.map(lote => (
         <div key={lote.id} style={{ background: "hsl(100,18%,13%)", borderRadius: 14,
           border: "0.5px solid " + (lote.alertaDiscrepancia ? "hsl(36,50%,25%)" : "hsl(100,18%,18%)"),
           marginBottom: 10, overflow: "hidden" }}>
