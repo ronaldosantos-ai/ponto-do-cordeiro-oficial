@@ -35,7 +35,7 @@ export default function Custos() {
   useEffect(() => {
     if (!user || !fazenda) return;
     carregar();
-  }, [user, fazenda]);
+  }, [user?.id, fazenda?.id]);
 
   async function carregar() {
     setLoading(true);
