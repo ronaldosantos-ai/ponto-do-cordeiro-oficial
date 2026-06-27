@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
+import { FazendaProvider } from "./hooks/useFazenda";
+import { AnimaisProvider } from "./hooks/useAnimais";
 import { AdminRoute } from "./components/AdminRoute";
 
 import AppLayout from "./components/v2/AppLayout";
@@ -36,39 +38,43 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingV5 />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/como-instalar" element={<ComoInstalar />} />
-            <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
-            <Route path="/termos-de-uso" element={<TermosDeUso />} />
-            <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
+      <FazendaProvider>
+        <AnimaisProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LandingV5 />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/como-instalar" element={<ComoInstalar />} />
+                <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+                <Route path="/termos-de-uso" element={<TermosDeUso />} />
+                <Route path="/admin" element={<AdminRoute><AdminDashboardV2 /></AdminRoute>} />
 
-            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/rebanho" element={<Rebanho />} />
-              <Route path="/rebanho/novo" element={<AnimalNovo />} />
-              <Route path="/rebanho/:id" element={<AnimalDetalhe />} />
-              <Route path="/pesagem" element={<Pesagem />} />
-              <Route path="/alertas" element={<Alertas />} />
-              <Route path="/lotes" element={<Lotes />} />
-              <Route path="/custos" element={<Custos />} />
-              <Route path="/custos/novo" element={<CustoNovo />} />
-              <Route path="/equilibrio" element={<PesoEquilibrio />} />
-              <Route path="/gmd" element={<GMDRebanho />} />
-              <Route path="/comparativo" element={<ComparativoMercado />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="/configuracoes" element={<Configuracoes />} />
-            </Route>
+                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/rebanho" element={<Rebanho />} />
+                  <Route path="/rebanho/novo" element={<AnimalNovo />} />
+                  <Route path="/rebanho/:id" element={<AnimalDetalhe />} />
+                  <Route path="/pesagem" element={<Pesagem />} />
+                  <Route path="/alertas" element={<Alertas />} />
+                  <Route path="/lotes" element={<Lotes />} />
+                  <Route path="/custos" element={<Custos />} />
+                  <Route path="/custos/novo" element={<CustoNovo />} />
+                  <Route path="/equilibrio" element={<PesoEquilibrio />} />
+                  <Route path="/gmd" element={<GMDRebanho />} />
+                  <Route path="/comparativo" element={<ComparativoMercado />} />
+                  <Route path="/relatorios" element={<Relatorios />} />
+                  <Route path="/configuracoes" element={<Configuracoes />} />
+                </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AnimaisProvider>
+      </FazendaProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
