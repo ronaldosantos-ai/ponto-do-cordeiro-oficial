@@ -24,15 +24,17 @@ export interface Animal {
 
 export function useAnimais() {
   const { user } = useAuth();
-  const { fazenda } = useFazenda();
+  const { fazenda, loading: loadingFazenda } = useFazenda();
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !fazenda) return;
+    // Aguarda o user; mas não bloqueia esperando fazenda indefinidamente
+    if (!user) return;
+    if (loadingFazenda) return; // espera a fazenda resolver (sucesso ou falha)
     carregar();
-  }, [user, fazenda]);
+  }, [user, fazenda, loadingFazenda]);
 
   async function carregar() {
     setLoading(true);
@@ -47,6 +49,7 @@ export function useAnimais() {
 
     if (error) { setErro(error.message); setLoading(false); return; }
 
+    // Usa valores padrão se a fazenda não carregou
     const meta     = fazenda?.meta_gmd_g  ?? 133;
     const metaPeso = fazenda?.meta_peso_kg ?? 40;
 
